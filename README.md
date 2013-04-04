@@ -1,4 +1,4 @@
-robo_cart
-=========
+RoboCart
+========
 
-This is the robo cart code
+Code for controlling robotic go cart for AVC
