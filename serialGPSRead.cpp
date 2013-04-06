@@ -2,6 +2,7 @@
 #include "iostream"
 #include "fcntl.h"
 #include <termios.h>
+#include <unistd.h>
 using namespace std;
 
 class serial
@@ -18,7 +19,8 @@ class serial
 };
 int serial::Openport()
 {
-    hndlserial = open("/dev/ttyO4",O_RDWR|O_NOCTTY|O_NDELAY);
+    //hndlserial = open("/dev/ttyO4",O_RDONLY|O_NOCTTY|O_NDELAY);
+    hndlserial = open("/dev/ttyO4",O_RDONLY|O_NONBLOCK);
     if(hndlserial == -1)
     {
         return 0;
@@ -41,9 +43,9 @@ void serial::Configureport(int hndlport)
     options.c_cflag &= ~PARENB;             /* Mask the character size to 8 bits, no parity */
     options.c_cflag &= ~CSTOPB;
     options.c_cflag &= ~CSIZE;
-    options.c_cflag |=  CS8;                /* Select 8 data bits */
+   options.c_cflag |=  CS8;                /* Select 8 data bits */
     options.c_cflag &= ~CRTSCTS;            /* Disable hardware flow control */
-    options.c_lflag &= ~(ICANON | ECHO | ISIG);/* Enable data to be processed as raw input */
+  //  options.c_lflag &= ~(ICANON | ECHO | ISIG);/* Enable data to be processed as raw input */
     tcsetattr(hndlserial, TCSANOW, &options); /* Set the new options for the port */
 
 }
