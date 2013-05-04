@@ -46,7 +46,7 @@ include toolsdefs
 # Modify some of the generic defines.
 #
 LD:=${CXX}
-CFLAGS:=${CFLAGS} -g -I ../include 
+CFLAGS:=${CFLAGS} -g -DSTANDALONE -I ../include 
 LDFLAGS:=${LDFLAGS} -g
 ifneq ($(findstring CYGWIN, ${os}), )
 LDFLAGS:=${LDFLAGS} -mwindows -mconsole

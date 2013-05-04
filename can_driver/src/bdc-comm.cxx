@@ -3723,6 +3723,7 @@ void FindJaguars(void) {
 	CmdSystem(2, g_argv);
 }
 
+#ifdef STANDALONE
 //*****************************************************************************
 //
 // The main control loop.
@@ -3825,3 +3826,4 @@ int main(int argc, char *argv[]) {
 		}
 	}
 }
+#endif
