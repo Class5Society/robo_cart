@@ -34,6 +34,7 @@ extern MUTEX mMutex;
 int steerID;
 int brakeID;
 
+
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
  */
@@ -92,8 +93,10 @@ int main(int argc, char **argv)
   OSThreadCreate(HeartbeatThread);
 
   //
-  //initialize the Jaguar motor controller
-  //CmdID
+  //initialize the Jaguar motor controller for the steering
+  //
+  fastCmdID((uint32_t) steerID);
+  //fastCmd
 
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages

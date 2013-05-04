@@ -34,6 +34,7 @@
 #include "can_driver/os.h"
 #include "can_driver/uart_handler.h"
 #include "can_driver/board_stat.h"
+#include "can_driver/fast-comm.h"
 
 //*****************************************************************************
 //

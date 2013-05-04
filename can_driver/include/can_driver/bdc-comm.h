@@ -53,4 +53,6 @@ extern int CmdUpdate(int argc, char *argv[]);
 extern void FindJaguars(void);
 extern int MutexInit(MUTEX *mutex);
 extern void *HeartbeatThread(void *pvData);
+extern void UARTSendMessage(uint32_t ulID, unsigned char *pucData, uint32_t ulDataLength);
+extern int WaitForAck(uint32_t ulID, uint32_t ulTimeout);
 #endif

@@ -70,6 +70,7 @@ add_library(can_driver
    src/${PROJECT_SOURCE_DIRECTORY}/board_stat.cxx
    src/${PROJECT_SOURCE_DIRECTORY}/os.cxx
    src/${PROJECT_SOURCE_DIRECTORY}/uart_handler.cxx
+   src/${PROJECT_SOURCE_DIRECTORY}/fast-comm.cxx
  )
 
 ## Declare a cpp executable

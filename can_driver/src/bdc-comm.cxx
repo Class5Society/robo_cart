@@ -305,7 +305,7 @@ static void UARTPutChar(uint32_t ulChar) {
 // Sends a message to the UART.
 //
 //*****************************************************************************
-static void UARTSendMessage(uint32_t ulID, unsigned char *pucData,
+void UARTSendMessage(uint32_t ulID, unsigned char *pucData,
 		uint32_t ulDataLength) {
 	//
 	// Lock the resource.
