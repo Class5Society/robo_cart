@@ -40,7 +40,7 @@ OBJS:=bdc-comm.o                                          \
 #
 # Include the generic rules.
 #
-include ../toolsdefs
+include toolsdefs
 
 #
 # Modify some of the generic defines.
