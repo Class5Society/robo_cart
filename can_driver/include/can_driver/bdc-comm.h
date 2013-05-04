@@ -1,6 +1,6 @@
 //*****************************************************************************
 //
-// os.cxx - The OS specific functions.
+// bdc-comm.h - The main control loop definitions.
 //
 // Copyright (c) 2009-2012 Texas Instruments Incorporated.  All rights reserved.
 // Software License Agreement
@@ -22,57 +22,35 @@
 //
 //*****************************************************************************
 
-#include "can_driver/can_driver.h"
+#ifndef __BDCCOMM_H__
+#define __BDCCOMM_H__
 
 //*****************************************************************************
 //
-// This function is used to create a thread for the application.
+// external definitions.
 //
 //*****************************************************************************
-void
-OSThreadCreate(void *(WorkerThread)(void *pvData))
-{
-#ifdef __WIN32
-    //
-    // Create the requested thread.
-    //
-    _beginthread((void (*)(void *))WorkerThread, 0, 0);
-#else
-    pthread_t thread;
+extern char g_szCOMName[32];
+extern uint32_t g_ulID;
+extern uint32_t g_ulHeartbeat;
+extern uint32_t g_ulBoardStatus;
+extern bool g_bBoardStatusActive;
+extern bool g_bConnected;
+extern bool g_bSynchronousUpdate;
+extern double g_dMaxVout;
+extern char *g_argv[11];
 
-    //
-    // Create the requested thread.
-    //
-    pthread_create(&thread, 0, WorkerThread, 0);
+extern int CmdVoltage(int argc, char *argv[]);
+extern int CmdVComp(int argc, char *argv[]);
+extern int CmdCurrent(int argc, char *argv[]);
+extern int CmdSpeed(int argc, char *argv[]);
+extern int CmdPosition(int argc, char *argv[]);
+extern int CmdStatus(int argc, char *argv[]);
+extern int CmdConfig(int argc, char *argv[]);
+extern int CmdPStatus(int argc, char *argv[]);
+extern int CmdSystem(int argc, char *argv[]);
+extern int CmdUpdate(int argc, char *argv[]);
+extern void FindJaguars(void);
+extern int MutexInit(MUTEX *mutex);
+extern void *HeartbeatThread(void *pvData);
 #endif
-}
-
-//*****************************************************************************
-//
-// This function is used to kill a thread for the application.
-//
-//*****************************************************************************
-void
-OSThreadExit(void)
-{
-#ifdef __WIN32
-    _endthread();
-#else
-    pthread_exit(0);
-#endif
-}
-
-//*****************************************************************************
-//
-// This function is used to sleep for a given number of seconds.
-//
-//*****************************************************************************
-void
-OSSleep(uint32_t ulSeconds)
-{
-#ifdef __WIN32
-    Sleep(ulSeconds * 1000);
-#else
-    sleep(ulSeconds);
-#endif
-}

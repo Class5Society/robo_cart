@@ -21,30 +21,9 @@
 // This is part of revision 9107 of the Stellaris Firmware Development Package.
 //
 //*****************************************************************************
-#include <libgen.h>
-#include <memory.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <math.h>
-#include <time.h>
-#include <stdint.h>
-#include "can_proto.h"
-#include "cmdline.h"
-#include "os.h"
-#include "uart_handler.h"
-#include "board_stat.h"
-#ifdef __WIN32
-#include <windows.h>
-#include <process.h>
-#else
-#include <pthread.h>
-#endif
-#ifdef __WIN32
-#define MUTEX HANDLE
-#else
-#define MUTEX pthread_mutex_t
-#endif
+
+#include "can_driver/can_driver.h"
+
 //*****************************************************************************
 //
 // The global mutex used to protect the UART controller use by threads.
@@ -52,7 +31,6 @@
 //*****************************************************************************
 MUTEX mMutex;
 
-#define MAX_CAN_ID              64
 
 //*****************************************************************************
 //
@@ -106,10 +84,6 @@ static uint32_t g_ulUARTLength;
 // The current UART state and its global variable.
 //
 //*****************************************************************************
-#define UART_STATE_IDLE         0
-#define UART_STATE_LENGTH       1
-#define UART_STATE_DATA         2
-#define UART_STATE_ESCAPE       3
 static uint32_t g_ulUARTState = UART_STATE_IDLE;
 
 //*****************************************************************************
@@ -205,13 +179,6 @@ char g_pcFaultTxt[16];
 //*****************************************************************************
 static bool g_bIgnoreCOMM = false;
 
-//*****************************************************************************
-//
-// This is used to range check values from the console. It should be set to the
-// last valid PSTAT message byte ID (in can_proto.h).
-//
-//*****************************************************************************
-#define PSTATUS_MAX_ID  LM_PSTAT_CANERR_B1
 
 //*****************************************************************************
 //

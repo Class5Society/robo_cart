@@ -22,32 +22,9 @@
 //
 //*****************************************************************************
 
-#include <libgen.h>
-#include <memory.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <math.h>
-#include <time.h>
-#include <stdint.h>
-#include "board_stat.h"
-#include "os.h"
-#include "uart_handler.h"
-#include "can_proto.h"
-#include "bdc-comm.h"
 
-#ifdef __WIN32
-#include <setupapi.h>
-#else
-#include <dirent.h>
-#endif
+#include "can_driver/can_driver.h"
 
-//*****************************************************************************
-//
-// The maximum number of CAN IDs that can be on the network.
-//
-//*****************************************************************************
-#define MAX_CAN_ID        64
 
 //*****************************************************************************
 //

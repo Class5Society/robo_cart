@@ -26,13 +26,23 @@
  */
 
 #include "drive_train.h"
+#include <can_driver/can_driver.h>
+
+std::string g_canCommPort;
+std::string g_throttleCommPort;
+extern MUTEX mMutex;
+int steerID;
+int brakeID;
 
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
  */
-void driveTrainCallBack(const CartDriveConstPtr& msg)
+void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
 {
   //ROS_INFO("I heard: [%s]", msg->data.c_str());
+  ROS_INFO("Steering: [%f]", msg->steering);
+  ROS_INFO("Throttle: [%f]", msg->throttle);
+  ROS_INFO("Brake: [%f]", msg->brake);
 }
 
 int main(int argc, char **argv)
@@ -56,6 +66,35 @@ int main(int argc, char **argv)
    */
   ros::NodeHandle n;
 
+  /* Get the parameters needed */
+  n.param<std::string>("can_comm_port",g_canCommPort,"/dev/ttyUSB0");
+  n.param<std::string>("throttle_comm_port",g_throttleCommPort,"/dev/talos");
+  n.param("can_steer_id",steerID,1);
+  n.param("can_brake_id",brakeID,2);
+
+  //
+  // Open the COM port.
+  //
+  if (OpenUART((char *) g_canCommPort.c_str(), 115200)) {
+     printf("Failed to configure Host UART\n");
+     return (-1);
+  }
+  g_bConnected = true;
+
+  //
+  // Initialize the mutex that restricts access to the COM port.
+  //
+  MutexInit(&mMutex);
+
+  //
+  // Create the heart beat thread.
+  //
+  OSThreadCreate(HeartbeatThread);
+
+  //
+  //initialize the Jaguar motor controller
+  //CmdID
+
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages
    * on a given topic.  This invokes a call to the ROS
@@ -71,8 +110,9 @@ int main(int argc, char **argv)
    * is the number of messages that will be buffered up before beginning to throw
    * away the oldest ones.
    */
-  ros::Subscriber sub = n.subscribe("command_cart", 1, driveTrainCallback);
+  ros::Subscriber sub = n.subscribe("command_cart", 1, driveTrainCallBack);
 
+   
   /**
    * ros::spin() will enter a loop, pumping callbacks.  With this version, all
    * callbacks will be called from within this thread (the main one).  ros::spin()

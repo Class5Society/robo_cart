@@ -4,10 +4,10 @@ project(drive_train)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs message_generation)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs message_generation can_driver)
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Threads REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -50,8 +50,8 @@ catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES drive_train
 #  CATKIN_DEPENDS roscpp rospy std_msgs
-  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
-#  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime can_driver
+  DEPENDS pthread
 )
 
 ###########
@@ -61,6 +61,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(include
+  can_driver/include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -70,16 +71,22 @@ include_directories(include
 # )
 
 ## Declare a cpp executable
-# add_executable(drive_train_node src/drive_train_node.cpp)
+add_executable(drive_train_node src/drive_train.cpp)
+add_executable(teleop_cart_node src/teleop_cart.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(drive_train_node drive_train_generate_messages_cpp)
+add_dependencies(drive_train_node drive_train_generate_messages_cpp can_driver)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(drive_train_node
-#   ${catkin_LIBRARIES}
-# )
+ target_link_libraries(drive_train_node
+   can_driver
+   ${CMAKE_THREAD_LIBS_INIT}
+   ${catkin_LIBRARIES}
+ )
+ target_link_libraries(teleop_cart_node
+   ${catkin_LIBRARIES}
+ )
 
 #############
 ## Install ##

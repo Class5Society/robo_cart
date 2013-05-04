@@ -10,24 +10,27 @@ private:
 
   
   ros::NodeHandle nh_;
-  float steering, throttle, brake;
-  float steer_scale, throt_scale, brake_scale;
+  double steering, throttle, brake;
+  double steer_incr, throt_incr, brake_incr;
   ros::Publisher cart_pub_;
   
 };
 
 TeleopCart::TeleopCart():
-  steering(5),
+  steering(0),
   throttle(0),
-  brake(1),
-  steer_scale(10);
-  throt_scale(2);
-  brake_scale(30);
+  brake(0),
+  steer_incr(1),
+  throt_incr(20),
+  brake_incr(10)
 {
-  //nh_.param("scale_angular", a_scale_, a_scale_);
-  //nh_.param("scale_linear", l_scale_, l_scale_);
+  nh_.param("steering_increment", steer_incr,steer_incr);
+  nh_.param("throttle_increment", throt_incr,throt_incr);
+  nh_.param("brake_increment", brake_incr,brake_incr);
 
   cart_pub_ = nh_.advertise<drive_train::CartDrive>("command_cart", 1);
+
+  //get parameters
 }
 
 int kfd = 0;
@@ -71,7 +74,7 @@ void TeleopCart::keyLoop()
 
   puts("Reading from keyboard");
   puts("---------------------------");
-  puts("Use arrow keys to move the turtle.");
+  puts("Use arrow keys to move the cart.");
 
 
   for(;;)
@@ -83,35 +86,51 @@ void TeleopCart::keyLoop()
       exit(-1);
     }
 
-    linear_=angular_=0;
+    steering=throttle=brake=0;
     ROS_DEBUG("value: 0x%02X\n", c);
   
     switch(c)
     {
       case KEYCODE_L:
         ROS_DEBUG("LEFT");
+        steering = -1;
         dirty = true;
         break;
       case KEYCODE_R:
         ROS_DEBUG("RIGHT");
+        steering = 1;
         dirty = true;
         break;
       case KEYCODE_U:
         ROS_DEBUG("UP");
+        throttle = 1;
         dirty = true;
         break;
       case KEYCODE_D:
         ROS_DEBUG("DOWN");
+        throttle = -1;
+        dirty = true;
+        break;
+      case KEYCODE_S:
+        ROS_DEBUG("STOP");
+        brake = 1;
+        dirty = true;
+        break;
+      case KEYCODE_A:
+        ROS_DEBUG("ADVANCE");
+        brake = 0;
         dirty = true;
         break;
     }
    
-
     drive_train::CartDrive drvCart;
-    vel.angular = a_scale_*angular_;
-    vel.linear = l_scale_*linear_;
+    drvCart.steering = steering * steer_incr;
+    drvCart.throttle = throttle * throt_incr;
+    drvCart.brake = brake * brake_incr;
+
     if(dirty ==true)
     {
+      ROS_INFO("%f",steer_incr);
       cart_pub_.publish(drvCart);    
       dirty=false;
     }
