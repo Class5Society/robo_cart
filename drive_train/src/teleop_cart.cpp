@@ -93,12 +93,12 @@ void TeleopCart::keyLoop()
     {
       case KEYCODE_L:
         ROS_DEBUG("LEFT");
-        steering = -1;
+        steering = 1;
         dirty = true;
         break;
       case KEYCODE_R:
         ROS_DEBUG("RIGHT");
-        steering = 1;
+        steering = -1;
         dirty = true;
         break;
       case KEYCODE_U:

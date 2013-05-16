@@ -135,12 +135,6 @@ int main(int argc, char **argv)
   outputVoltage = (int32_t) ((double) MAX_VOUT_SCALE_FACTOR * (double) MAX_VOUT_PERC);
   fastConfigMaxV(steerID,outputVoltage);
 
-  //enable the Positon mode
-  int32_t inpValue;
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerStartPos);
-  currentSteerPos = steerStartPos;
-  fastCmdPosEnable(steerID, inpValue);
-
   //set the reference
   fastCmdPosRef(steerID,POTENTIOMETER_REF);
 
@@ -151,6 +145,12 @@ int main(int argc, char **argv)
   fastCmdPosD(steerID, inpValue);
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerPVal);
   fastCmdPosP(steerID, inpValue);
+
+  //enable the Positon mode
+  int32_t inpValue;
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerStartPos);
+  currentSteerPos = steerStartPos;
+  fastCmdPosEnable(steerID, inpValue);
 
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages

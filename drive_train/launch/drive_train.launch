@@ -12,7 +12,5 @@
    <param name="steer_P_val" value="150.0" />
    <param name="steer_I_val" value="0.01" />
    <param name="steer_D_val" value="0.01" />
-   <group ns="robo_cart">
       <node pkg="drive_train" type="drive_train_node" name="cart_base"/>
-   </group>
 </launch>
