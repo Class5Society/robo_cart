@@ -33,15 +33,42 @@ std::string g_throttleCommPort;
 extern MUTEX mMutex;
 int steerID;
 int brakeID;
-
+double currentSteerPos;
+double steerStartPos;
+double steerLeftStop;
+double steerRightStop;
+double steerPVal;
+double steerIVal;
+double steerDVal;
 
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
  */
 void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
 {
+  //add the steering to the current direction
+  currentSteerPos += msg->steering;
+
+  //check limits
+  if (currentSteerPos < steerLeftStop)
+     {
+     currentSteerPos = steerLeftStop;
+      }
+
+  if (currentSteerPos > steerRightStop)
+     {
+     currentSteerPos = steerRightStop;
+     }
+
+  
+  //enable the Positon mode
+  int32_t inpValue;
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR *currentSteerPos );
+  fastCmdPosSet(steerID, inpValue);
+
   //ROS_INFO("I heard: [%s]", msg->data.c_str());
   ROS_INFO("Steering: [%f]", msg->steering);
+  ROS_INFO("CurrentPos: [%f]", currentSteerPos);
   ROS_INFO("Throttle: [%f]", msg->throttle);
   ROS_INFO("Brake: [%f]", msg->brake);
 }
@@ -72,6 +99,12 @@ int main(int argc, char **argv)
   n.param<std::string>("throttle_comm_port",g_throttleCommPort,"/dev/talos");
   n.param("can_steer_id",steerID,1);
   n.param("can_brake_id",brakeID,2);
+  n.param("steer_start_pos",steerStartPos,POS_START_REF);
+  n.param("steer_left_stop",steerLeftStop,POS_LEFT_STOP);
+  n.param("steer_right_stop",steerRightStop,POS_RIGHT_STOP);
+  n.param("steer_P_val",steerPVal,150.0);
+  n.param("steer_I_val",steerIVal,0.01);
+  n.param("steer_D_val",steerDVal,0.01);
 
   //
   // Open the COM port.
@@ -95,8 +128,29 @@ int main(int argc, char **argv)
   //
   //initialize the Jaguar motor controller for the steering
   //
-  fastCmdID((uint32_t) steerID);
-  //fastCmd
+  fastConfigTurns(steerID,POT_MAX_TURNS);
+
+  //Configure the max output voltage
+  int32_t outputVoltage;
+  outputVoltage = (int32_t) ((double) MAX_VOUT_SCALE_FACTOR * (double) MAX_VOUT_PERC);
+  fastConfigMaxV(steerID,outputVoltage);
+
+  //enable the Positon mode
+  int32_t inpValue;
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerStartPos);
+  currentSteerPos = steerStartPos;
+  fastCmdPosEnable(steerID, inpValue);
+
+  //set the reference
+  fastCmdPosRef(steerID,POTENTIOMETER_REF);
+
+  //set the values or P I and D
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerIVal);
+  fastCmdPosI(steerID, inpValue);
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerDVal);
+  fastCmdPosD(steerID, inpValue);
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerPVal);
+  fastCmdPosP(steerID, inpValue);
 
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages

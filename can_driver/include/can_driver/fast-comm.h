@@ -8,21 +8,20 @@
 #define FAST_COMM_H
 int fastCmdID(uint32_t jagId);
 int fastCmdHeartbeat();
-int fastCmdPosEnable(int32_t inpValue);
-int fastCmdPosDis(void);
-int fastCmdPosSet(int32_t inpValue);
-int fastCmdPosP(int32_t inpValue);
-int fastCmdPosI(int32_t inpValue);
-int fastCmdPosD(int32_t inpValue);
-int fastCmdPosRef(int32_t inpValue);
-int fastCmdPosSetNoAck(int32_t inpValue);
-int fastConfigTurns(int32_t numTurns);
-int fastConfigMaxV(int32_t maxV);
+int fastCmdPosEnable(uint32_t jagId, int32_t inpValue);
+int fastCmdPosDis(uint32_t jagId);
+int fastCmdPosSet(uint32_t jagId,int32_t inpValue);
+int fastCmdPosP(uint32_t jagId,int32_t inpValue);
+int fastCmdPosI(uint32_t jagId,int32_t inpValue);
+int fastCmdPosD(uint32_t jagId,int32_t inpValue);
+int fastCmdPosRef(uint32_t jagId,int32_t inpValue);
+int fastCmdPosSetNoAck(uint32_t jagId,int32_t inpValue);
+int fastConfigTurns(uint32_t jagId,int32_t numTurns);
+int fastConfigMaxV(uint32_t jagId,int32_t maxV);
 int fastSystemHalt(void);
 int fastSystemResume(void);
 int fastSystemReset(void);
-int fastSystemEnum(void);
+int fastSystemEnum(uint32_t jagId);
 int fastSystemQuery(void);
 int fastSystemSync(uint32_t syncGrp);
-void fastFindJaguars(void);
 #endif

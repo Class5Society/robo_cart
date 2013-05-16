@@ -6,6 +6,12 @@
    <param name="can_steer_id" value="1"/>
    <param name="can_brake_id" value="2"/>
    <param name="throttle_comm_port" value="/dev/talos/" />
+   <param name="steer_start_pos" value="5.0" />
+   <param name="steer_left_stop" value="2.0" />
+   <param name="steer_right_stop" value="8.0" />
+   <param name="steer_P_val" value="150.0" />
+   <param name="steer_I_val" value="0.01" />
+   <param name="steer_D_val" value="0.01" />
    <group ns="robo_cart">
       <node pkg="drive_train" type="drive_train_node" name="cart_base"/>
    </group>

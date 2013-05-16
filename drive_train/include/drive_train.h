@@ -17,11 +17,14 @@
 #define KEYCODE_S 0x73
 #define KEYCODE_A 0x61
 
-#define posScaleFactor 65536
-#define maxVScaleFactor 3072
+#define POS_SCALE_FACTOR 65536
+#define MAX_VOUT_SCALE_FACTOR 3072
+#define MAX_VOUT_PERC 0.5 
 
-#define potentiometerTurns 10
+#define POT_MAX_TURNS 10
 #define POTENTIOMETER_REF 1
-#define posStartRef 5
+#define POS_START_REF 5.0
+#define POS_LEFT_STOP 2.0
+#define POS_RIGHT_STOP 8.0
 
 #endif

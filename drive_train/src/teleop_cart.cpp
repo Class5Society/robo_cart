@@ -21,8 +21,8 @@ TeleopCart::TeleopCart():
   throttle(0),
   brake(0),
   steer_incr(1),
-  throt_incr(20),
-  brake_incr(10)
+  throt_incr(1),
+  brake_incr(1)
 {
   nh_.param("steering_increment", steer_incr,steer_incr);
   nh_.param("throttle_increment", throt_incr,throt_incr);

@@ -35,7 +35,7 @@ int fastCmdID(uint32_t jagId) {
 	//
 	// Set the ID
 	//
-	g_ulID = jagId;
+	jagId = jagId;
 
 	return (0);
 }
@@ -61,7 +61,7 @@ int fastCmdHeartbeat() {
 // This command enables the Position control mode.
 //
 //*****************************************************************************
-int fastCmdPosEnable(int32_t inpValue)
+int fastCmdPosEnable(uint32_t jagId, int32_t inpValue)
 {
 	int32_t plValue[2];
 
@@ -70,9 +70,9 @@ int fastCmdPosEnable(int32_t inpValue)
 	//
 	plValue[0] = inpValue;
 
-	UARTSendMessage(LM_API_POS_EN | g_ulID, (unsigned char *) plValue, 4);
+	UARTSendMessage(LM_API_POS_EN | jagId, (unsigned char *) plValue, 4);
 
-	WaitForAck(LM_API_ACK | g_ulID, 10);
+	WaitForAck(LM_API_ACK | jagId, 10);
 
 }
 
@@ -81,14 +81,14 @@ int fastCmdPosEnable(int32_t inpValue)
 // This command disables the Position control mode.
 //
 //*****************************************************************************
-int fastCmdPosDis(void)
+int fastCmdPosDis(uint32_t jagId)
 {
 	//
 	// Disable Position control mode.
 	//
-	UARTSendMessage(LM_API_POS_DIS | g_ulID, 0, 0);
+	UARTSendMessage(LM_API_POS_DIS | jagId, 0, 0);
 
-	WaitForAck(LM_API_ACK | g_ulID, 10);
+	WaitForAck(LM_API_ACK | jagId, 10);
 
 }
 
@@ -97,7 +97,7 @@ int fastCmdPosDis(void)
 // This command sets the position location
 //
 //*****************************************************************************
-int fastCmdPosSet(int32_t inpValue)
+int fastCmdPosSet(uint32_t jagId, int32_t inpValue)
 {
 	int32_t plValue[2];
 
@@ -106,8 +106,8 @@ int fastCmdPosSet(int32_t inpValue)
 	//
 	plValue[0] = inpValue;
 
-	UARTSendMessage(LM_API_POS_SET | g_ulID, (unsigned char *) plValue, 4);
-	WaitForAck(LM_API_ACK | g_ulID, 10);
+	UARTSendMessage(LM_API_POS_SET | jagId, (unsigned char *) plValue, 4);
+	WaitForAck(LM_API_ACK | jagId, 10);
 
 }
 
@@ -117,7 +117,7 @@ int fastCmdPosSet(int32_t inpValue)
 // This command sets the position P value for PID.
 //
 //*****************************************************************************
-int fastCmdPosP(int32_t inpValue)
+int fastCmdPosP(uint32_t jagId, int32_t inpValue)
 {
 	int32_t plValue[2];
 
@@ -126,8 +126,8 @@ int fastCmdPosP(int32_t inpValue)
 	//
 	plValue[0] = inpValue;
 
-	UARTSendMessage(LM_API_POS_PC | g_ulID, (unsigned char *) plValue, 4);
-	WaitForAck(LM_API_ACK | g_ulID, 10);
+	UARTSendMessage(LM_API_POS_PC | jagId, (unsigned char *) plValue, 4);
+	WaitForAck(LM_API_ACK | jagId, 10);
 }
 
 //*****************************************************************************
@@ -135,7 +135,7 @@ int fastCmdPosP(int32_t inpValue)
 // This command sets the position I value for PID.
 //
 //*****************************************************************************
-int fastCmdPosI(int32_t inpValue)
+int fastCmdPosI(uint32_t jagId, int32_t inpValue)
 {
 	int32_t plValue[2];
 
@@ -144,8 +144,8 @@ int fastCmdPosI(int32_t inpValue)
 	//
 	plValue[0] = inpValue;
 
-	UARTSendMessage(LM_API_POS_IC | g_ulID, (unsigned char *) plValue, 4);
-	WaitForAck(LM_API_ACK | g_ulID, 10);
+	UARTSendMessage(LM_API_POS_IC | jagId, (unsigned char *) plValue, 4);
+	WaitForAck(LM_API_ACK | jagId, 10);
 }
 
 //*****************************************************************************
@@ -153,7 +153,7 @@ int fastCmdPosI(int32_t inpValue)
 // This command sets the position D value for PID.
 //
 //*****************************************************************************
-int fastCmdPosD(int32_t inpValue)
+int fastCmdPosD(uint32_t jagId, int32_t inpValue)
 {
 	int32_t plValue[2];
 
@@ -162,8 +162,8 @@ int fastCmdPosD(int32_t inpValue)
 	//
 	plValue[0] = inpValue;
 
-	UARTSendMessage(LM_API_POS_DC | g_ulID, (unsigned char *) plValue, 4);
-	WaitForAck(LM_API_ACK | g_ulID, 10);
+	UARTSendMessage(LM_API_POS_DC | jagId, (unsigned char *) plValue, 4);
+	WaitForAck(LM_API_ACK | jagId, 10);
 }
 
 //*****************************************************************************
@@ -171,7 +171,7 @@ int fastCmdPosD(int32_t inpValue)
 // This command sets the position reference (Encoder =0 and Potentiometer = 1)
 //
 //*****************************************************************************
-int fastCmdPosRef(int32_t inpValue)
+int fastCmdPosRef(uint32_t jagId, int32_t inpValue)
 {
 	int32_t plValue[2];
 
@@ -189,8 +189,8 @@ int fastCmdPosRef(int32_t inpValue)
 	//
 	// Set the reference in Position control mode.
 	//
-	UARTSendMessage(LM_API_POS_REF | g_ulID, (unsigned char *) plValue, 1);
-	WaitForAck(LM_API_ACK | g_ulID, 10);
+	UARTSendMessage(LM_API_POS_REF | jagId, (unsigned char *) plValue, 1);
+	WaitForAck(LM_API_ACK | jagId, 10);
 }
 
 //*****************************************************************************
@@ -198,7 +198,7 @@ int fastCmdPosRef(int32_t inpValue)
 // This command sets the position location without waiting for an ack
 //
 //*****************************************************************************
-int fastCmdPosSetNoAck(int32_t inpValue)
+int fastCmdPosSetNoAck(uint32_t jagId, int32_t inpValue)
 {
 	int32_t plValue[2];
 
@@ -207,7 +207,7 @@ int fastCmdPosSetNoAck(int32_t inpValue)
 	//
 	plValue[0] = inpValue;
 
-	UARTSendMessage(LM_API_POS_SET_NO_ACK | g_ulID, (unsigned char *) plValue, 4);
+	UARTSendMessage(LM_API_POS_SET_NO_ACK | jagId, (unsigned char *) plValue, 4);
 
 }
 
@@ -217,7 +217,7 @@ int fastCmdPosSetNoAck(int32_t inpValue)
 // This sets the number of turns on the potentionmeter.
 //
 //*****************************************************************************
-int fastConfigTurns(int32_t numTurns) {
+int fastConfigTurns(uint32_t jagId, int32_t numTurns) {
 	int32_t plValue[2];
 
 	//
@@ -237,8 +237,8 @@ int fastConfigTurns(int32_t numTurns) {
 		plValue[0] = 65535;
 	}
 
-	UARTSendMessage(LM_API_CFG_POT_TURNS | g_ulID, (unsigned char *) plValue, 2);
-	WaitForAck(LM_API_ACK | g_ulID, 10);
+	UARTSendMessage(LM_API_CFG_POT_TURNS | jagId, (unsigned char *) plValue, 2);
+	WaitForAck(LM_API_ACK | jagId, 10);
 }
 
 //*****************************************************************************
@@ -246,7 +246,7 @@ int fastConfigTurns(int32_t numTurns) {
 // This sets the max percentage of voltage out
 //
 //*****************************************************************************
-int fastConfigMaxV(int32_t maxV) {
+int fastConfigMaxV(uint32_t jagId, int32_t maxV) {
 	int32_t plValue[2];
 
 	// Get the Max voltage out setting.
@@ -264,21 +264,10 @@ int fastConfigMaxV(int32_t maxV) {
 		plValue[0] = 12 * 256;
 	}
 
-	UARTSendMessage(LM_API_CFG_MAX_VOUT | g_ulID, (unsigned char *) plValue, 2);
-	WaitForAck(LM_API_ACK | g_ulID, 10);
+	UARTSendMessage(LM_API_CFG_MAX_VOUT | jagId, (unsigned char *) plValue, 2);
+	WaitForAck(LM_API_ACK | jagId, 10);
 }
 
-//*****************************************************************************
-//
-// This command handler takes care of the system level commands.
-//
-//*****************************************************************************
-
-//*****************************************************************************
-//
-// This command handler takes care of the system level commands.
-//
-//*****************************************************************************
 
 //*****************************************************************************
 //
@@ -315,7 +304,7 @@ int fastSystemReset(void)
 // This commands everthing to enumerate
 //
 //*****************************************************************************
-int fastSystemEnum(void)
+int fastSystemEnum(uint32_t jagId)
 {
      //
      // Broadcast a system enumeration command.
@@ -325,7 +314,7 @@ int fastSystemEnum(void)
      //
      // Wait for a device query response.
      //
-     WaitForAck(CAN_MSGID_API_DEVQUERY | g_ulID, 100);
+     WaitForAck(CAN_MSGID_API_DEVQUERY | jagId, 100);
 }
 
 //*****************************************************************************
@@ -333,15 +322,15 @@ int fastSystemEnum(void)
 // This commands everthing a query
 //
 //*****************************************************************************
-int fastSystemQuery(void)
+int fastSystemQuery(uint32_t jagId)
 {
 	//
 	// Handle the device query command that will return information about
 	// the device.
 	//
-	UARTSendMessage(CAN_MSGID_API_DEVQUERY | g_ulID, 0, 0);
+	UARTSendMessage(CAN_MSGID_API_DEVQUERY | jagId, 0, 0);
 
-	WaitForAck(CAN_MSGID_API_DEVQUERY | g_ulID, 10);
+	WaitForAck(CAN_MSGID_API_DEVQUERY | jagId, 10);
 }
 
 
@@ -363,26 +352,5 @@ int fastSystemSync(uint32_t syncGrp)
 	ulValue = syncGrp;
 
 	UARTSendMessage(CAN_MSGID_API_SYNC, (unsigned char *) &ulValue, 1);
-}
-
-//*****************************************************************************
-//
-// Finds the Jaguars on the network.
-//
-//*****************************************************************************
-void fastFindJaguars(void) {
-	int iIdx;
-
-	//
-	// Initialize the status structure list to all 0's.
-	//
-	for (iIdx = 0; iIdx < MAX_CAN_ID; iIdx++) {
-		g_sBoardState[iIdx].ulControlMode = LM_STATUS_CMODE_VOLT;
-	}
-
-	//
-	// Send the enumerate command.
-	//
-        fastSystemEnum();
 }
 
