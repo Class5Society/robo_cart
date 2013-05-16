@@ -34,12 +34,14 @@ extern MUTEX mMutex;
 int steerID;
 int brakeID;
 double currentSteerPos;
+double currentThrottlePos;
 double steerStartPos;
 double steerLeftStop;
 double steerRightStop;
 double steerPVal;
 double steerIVal;
 double steerDVal;
+FILE *throttleDrive;
 
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
@@ -50,12 +52,12 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
   currentSteerPos += msg->steering;
 
   //check limits
-  if (currentSteerPos < steerLeftStop)
+  if (currentSteerPos > steerLeftStop)
      {
      currentSteerPos = steerLeftStop;
       }
 
-  if (currentSteerPos > steerRightStop)
+  if (currentSteerPos < steerRightStop)
      {
      currentSteerPos = steerRightStop;
      }
@@ -65,6 +67,22 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
   int32_t inpValue;
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR *currentSteerPos );
   fastCmdPosSet(steerID, inpValue);
+
+  //check limits
+  if (currentThrottlePos > MAX_THROT_POS)
+     {
+     currentThrottlePos = MAX_THROT_POS;
+      }
+
+  if (currentThrottlePos < MIN_THROT_POS)
+     {
+     currentThrottlePos = MIN_THROT_POS;
+     }
+
+  if (throttleDrive != NULL)
+  {
+  fprintf(throttleDrive,"%f\n",currentThrottlePos);
+} 
 
   //ROS_INFO("I heard: [%s]", msg->data.c_str());
   ROS_INFO("Steering: [%f]", msg->steering);
@@ -96,7 +114,7 @@ int main(int argc, char **argv)
 
   /* Get the parameters needed */
   n.param<std::string>("can_comm_port",g_canCommPort,"/dev/ttyUSB0");
-  n.param<std::string>("throttle_comm_port",g_throttleCommPort,"/dev/talos");
+  n.param<std::string>("throttle_comm_port",g_throttleCommPort,"/dev/talos/servo1/position");
   n.param("can_steer_id",steerID,1);
   n.param("can_brake_id",brakeID,2);
   n.param("steer_start_pos",steerStartPos,POS_START_REF);
@@ -152,6 +170,16 @@ int main(int argc, char **argv)
   currentSteerPos = steerStartPos;
   fastCmdPosEnable(steerID, inpValue);
 
+  //
+  // Open the throttle port
+  //
+  throttleDrive = fopen(g_throttleCommPort.c_str(),"w");
+  if (throttleDrive != NULL)
+  {
+  setbuf(throttleDrive,NULL);
+  currentThrottlePos = MIN_THROT_POS;
+  fprintf(throttleDrive,"%f\n",currentThrottlePos);
+  }
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages
    * on a given topic.  This invokes a call to the ROS
