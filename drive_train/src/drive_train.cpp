@@ -139,6 +139,7 @@ int main(int argc, char **argv)
   fastCmdPosRef(steerID,POTENTIOMETER_REF);
 
   //set the values or P I and D
+  int32_t inpValue;
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerIVal);
   fastCmdPosI(steerID, inpValue);
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerDVal);
@@ -147,7 +148,6 @@ int main(int argc, char **argv)
   fastCmdPosP(steerID, inpValue);
 
   //enable the Positon mode
-  int32_t inpValue;
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerStartPos);
   currentSteerPos = steerStartPos;
   fastCmdPosEnable(steerID, inpValue);
