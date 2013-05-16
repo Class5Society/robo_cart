@@ -24,8 +24,8 @@
 #define POT_MAX_TURNS 10
 #define POTENTIOMETER_REF 1
 #define POS_START_REF 5.0
-#define POS_LEFT_STOP 2.0
-#define POS_RIGHT_STOP 8.0
+#define POS_LEFT_STOP 8.0
+#define POS_RIGHT_STOP 2.0
 
 #define MAX_THROT_POS 250
 #define MIN_THROT_POS 10
