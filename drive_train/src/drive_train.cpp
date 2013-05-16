@@ -68,6 +68,9 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR *currentSteerPos );
   fastCmdPosSet(steerID, inpValue);
 
+  //add the steering to the current direction
+  currentThrottlePos += msg->throttle;
+
   //check limits
   if (currentThrottlePos > MAX_THROT_POS)
      {
