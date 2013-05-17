@@ -1,6 +1,6 @@
 <launch>
    <param name="steering_increment" value="0.5" />
-   <param name="throttle_increment" value="10" />
+   <param name="throttle_increment" value="20" />
    <param name="brake_increment" value="9" />
    <param name="can_comm_port" value="/dev/ttyUSB0"/>
    <param name="can_steer_id" value="1"/>
