@@ -7,7 +7,7 @@ project(cart_sensors)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs message_generation)
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Threads REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -50,7 +50,7 @@ catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES cart_sensors
   CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
-#  DEPENDS system_lib
+  DEPENDS pthread
 )
 
 ###########
