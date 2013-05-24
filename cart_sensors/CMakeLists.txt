@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(drive_train)
+project(cart_sensors)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs message_generation can_driver cart_sensors)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs message_generation)
 
 ## System dependencies are found with CMake's conventions
-find_package(Threads REQUIRED)
+# find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -22,7 +22,7 @@ find_package(Threads REQUIRED)
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   CartDrive.msg
+   Encoder.msg
  )
 
 ## Generate services in the 'srv' folder
@@ -48,10 +48,9 @@ find_package(Threads REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
    INCLUDE_DIRS include
-#  LIBRARIES drive_train
-#  CATKIN_DEPENDS roscpp rospy std_msgs
-  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime can_driver
-  DEPENDS pthread
+#  LIBRARIES cart_sensors
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+#  DEPENDS system_lib
 )
 
 ###########
@@ -61,32 +60,25 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(include
-  can_driver/include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a cpp library
-# add_library(drive_train
-#   src/${PROJECT_NAME}/drive_train.cpp
+# add_library(cart_sensors
+#   src/${PROJECT_NAME}/cart_sensors.cpp
 # )
 
 ## Declare a cpp executable
-add_executable(drive_train_node src/drive_train.cpp)
-add_executable(teleop_cart_node src/teleop_cart.cpp)
+# add_executable(cart_sensors_node src/cart_sensors_node.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-add_dependencies(drive_train_node drive_train_generate_messages_cpp can_driver)
+# add_dependencies(cart_sensors_node cart_sensors_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(drive_train_node
-   can_driver
-   ${CMAKE_THREAD_LIBS_INIT}
-   ${catkin_LIBRARIES}
- )
- target_link_libraries(teleop_cart_node
-   ${catkin_LIBRARIES}
- )
+# target_link_libraries(cart_sensors_node
+#   ${catkin_LIBRARIES}
+# )
 
 #############
 ## Install ##
@@ -103,7 +95,7 @@ add_dependencies(drive_train_node drive_train_generate_messages_cpp can_driver)
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS drive_train drive_train_node
+# install(TARGETS cart_sensors cart_sensors_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -128,7 +120,7 @@ add_dependencies(drive_train_node drive_train_generate_messages_cpp can_driver)
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_drive_train.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_cart_sensors.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
