@@ -153,7 +153,7 @@ void *pollEncoder(void *pvData)
         read(fdset[1].fd, buf, MAX_BUF);
         
         
-        ROS_INFO("REad Value %c", buf[0]);
+        ROS_INFO("REad Value %s", buf[0]);
 
         // lock the mutex
         MutexLock(&encoderMutex);
