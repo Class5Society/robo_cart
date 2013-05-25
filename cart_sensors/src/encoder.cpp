@@ -113,13 +113,13 @@ void *pollEncoder(void *pvData)
    //check stuff
    if (status < 0)
    {
-     pthread_exit((void *) &errorRet);
+//     pthread_exit((void *) &errorRet);
    }
 
    status = gpio_set_edge("rising");
    if (status < 0)
    {
-     pthread_exit((void *) &errorRet);
+//     pthread_exit((void *) &errorRet);
    }
 
    //open the port
@@ -129,7 +129,8 @@ void *pollEncoder(void *pvData)
    {
      pthread_exit((void *) &errorRet);
    } 
-  
+   ROS_INFO("GOT_HERE")
+ 
    while (ros::ok())
    { 
       //clear out the memory
