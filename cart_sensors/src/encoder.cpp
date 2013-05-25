@@ -1,11 +1,18 @@
 #include "cart_sensors/cart_sensors.h"
 
 /* code to read the encoder */
-#define POLL_TIMEOUT 100  /*milliseconds*/
+#define POLL_TIMEOUT 1  /*milliseconds*/
 #define MAX_BUF 1
+#define PULSE_DIST 2.68
+#define NUM_PULSE 12
+#define INCH_PER_FOOT 12.0
+
 std::string encoderPort;
 uint64_t numCounts;
 MUTEX encoderMutex;
+
+//Setup globals
+ros::Publisher distancePub;
 
 /****************************************************************
  * gpio_set_edge
@@ -86,13 +93,13 @@ void *pollEncoder(void *pvData)
    //check stuff
    if (status < 0)
    {
-//     pthread_exit((void *) &errorRet);
+     pthread_exit((void *) &errorRet);
    }
 
    status = gpio_set_edge("rising");
    if (status < 0)
    {
-//     pthread_exit((void *) &errorRet);
+     pthread_exit((void *) &errorRet);
    }
 
    //open the port
@@ -144,13 +151,29 @@ void *pollEncoder(void *pvData)
 
 void CartDistance(const ros::TimerEvent&)
 {
-  ROS_INFO("Callback 1 triggered NumCounts %llu",numCounts);
+  uint64_t currCounts;
+  double distTrav;
+
+  //read the current counts
+  MutexLock(&encoderMutex);
+  currCounts = numCounts;
+  MutexUnlock(&encoderMutex);
+
+  distTrav = (currCounts * PULSE_DIST)/INCH_PER_FOOT;
+  
+  //create a message
+  cart_sensors::Encoder distanceMsg;
+  distanceMsg.distance = distTrav;
+  distanceMsg.numTurns = currCounts/NUM_PULSE;
+  
+  //Publish the message
+  distancePub.publish(distanceMsg); 
 }
 
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "talker");
+  ros::init(argc, argv, "encoder");
   ros::NodeHandle n;
 
   n.param<std::string>("encoder_port",encoderPort,"/dev/talos_direct/digio_11");
@@ -166,11 +189,14 @@ int main(int argc, char **argv)
   // start the thread
   OSThreadCreate(pollEncoder);
 
+  //set the publisher
+  distancePub = n.advertise<cart_sensors::Encoder>("cart_distance",1);
+
   /**
    * Timers allow you to get a callback at a specified rate.  Here we create
    * two timers at different rates as a demonstration.
    */
-  ros::Timer timer1 = n.createTimer(ros::Duration(.01), CartDistance);
+  ros::Timer timer1 = n.createTimer(ros::Duration(.003), CartDistance);
 
   ros::spin();
 
