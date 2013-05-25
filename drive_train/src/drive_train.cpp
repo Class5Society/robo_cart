@@ -16,6 +16,15 @@ double steerIVal;
 double steerDVal;
 FILE *throttleDrive;
 
+double throttleStartPos;
+double throttleStopPos;
+
+double currentBrakePos;
+double brakeFullStop;
+double brakeOff;
+double brakePVal;
+double brakeIVal;
+double brakeDVal;
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
  */
@@ -36,10 +45,28 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
      }
 
   
-  //enable the Positon mode
+  //set position4yy
   int32_t inpValue;
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR *currentSteerPos );
   fastCmdPosSet(steerID, inpValue);
+
+  //add the steering to the current direction
+  currentBrakePos += msg->brake;
+
+  //check limits
+  if (currentBrakePos > brakeFullStop)
+     {
+     currentBrakePos = brakeFullStop;
+      }
+
+  if (currentBrakePos < brakeOff)
+     {
+     currentBrakePos = brakeOff;
+     }
+
+  //set position4yy
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR *currentBrakePos );
+  fastCmdPosSet(brakeID, inpValue);
 
   //add the steering to the current direction
   currentThrottlePos += msg->throttle;
@@ -100,6 +127,13 @@ int main(int argc, char **argv)
   n.param("steer_I_val",steerIVal,0.01);
   n.param("steer_D_val",steerDVal,0.01);
 
+  n.param("brake_full_stop",brakeFullStop,0.0);
+  n.param("brake_off",brakeOff,5.0);
+  n.param("brake_P_val",brakePVal,150.0);
+  n.param("brake_I_val",brakeIVal,0.01);
+  n.param("brake_D_val",brakeDVal,0.01);
+  n.param("throttle_start",throttleStartPos,MIN_THROT_POS);
+  n.param("throttle_stop",throttleStopPos,MAX_THROT_POS);
   //
   // Open the COM port.
   //
@@ -145,6 +179,32 @@ int main(int argc, char **argv)
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerStartPos);
   currentSteerPos = steerStartPos;
   fastCmdPosEnable(steerID, inpValue);
+
+
+  //
+  //initialize the Jaguar motor controller for brake
+  //
+  fastConfigTurns(brakeID,POT_MAX_TURNS);
+
+  //Configure the max output voltage
+  outputVoltage = (int32_t) ((double) MAX_VOUT_SCALE_FACTOR * (double) MAX_VOUT_PERC);
+  fastConfigMaxV(brakeID,outputVoltage);
+
+  //set the reference
+  fastCmdPosRef(brakeID,POTENTIOMETER_REF);
+
+  //set the values or P I and D
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * brakeIVal);
+  fastCmdPosI(brakeID, inpValue);
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * brakeDVal);
+  fastCmdPosD(brakeID, inpValue);
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * brakePVal);
+  fastCmdPosP(brakeID, inpValue);
+
+  //enable the Positon mode
+  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * brakeFullStop);
+  currentBrakePos = brakeFullStop;
+  fastCmdPosEnable(brakeID, inpValue);
 
   //
   // Open the throttle port
