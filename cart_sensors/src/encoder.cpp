@@ -1,7 +1,7 @@
 #include "cart_sensors/cart_sensors.h"
 
 /* code to read the encoder */
-#define POLL_TIMEOUT 100  /*milliseconds*/
+#define POLL_TIMEOUT 1000  /*milliseconds*/
 std::string encoderPort;
 uint64_t numCounts;
 MUTEX encoderMutex;
@@ -84,13 +84,13 @@ void *pollEncoder(void *pvData)
    //check stuff
    if (status < 0)
    {
-     pthread_exit((void *) &errorRet);
+ //    pthread_exit((void *) &errorRet);
    }
 
    status = gpio_set_edge("rising");
    if (status < 0)
    {
-     pthread_exit((void *) &errorRet);
+  //   pthread_exit((void *) &errorRet);
    }
 
    //open the port
@@ -117,7 +117,7 @@ void *pollEncoder(void *pvData)
       {
          pthread_exit((void *) &errorRet);
       }
-
+      ROS_INFO("In Thread");
       if (fdset[0].revents & POLLPRI)
       {
         // lock the mutex
@@ -141,7 +141,7 @@ void *pollEncoder(void *pvData)
 
 void CartDistance(const ros::TimerEvent&)
 {
-  ROS_INFO("Callback 1 triggered NumCounts %lu",numCounts);
+  ROS_INFO("Callback 1 triggered NumCounts %llu",numCounts);
 }
 
 
