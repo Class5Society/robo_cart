@@ -2,6 +2,7 @@
 
 /* code to read the encoder */
 #define POLL_TIMEOUT 100  /*milliseconds*/
+#define MAX_BUF 256
 std::string encoderPort;
 uint64_t numCounts;
 MUTEX encoderMutex;
@@ -74,6 +75,7 @@ void *pollEncoder(void *pvData)
    int timeOut;
    int pollReturn;
    int gpioPort;
+   char *buf[MAX_BUF];
 
    int errorRet = -1;
    int closeRet = 0;
@@ -120,6 +122,11 @@ void *pollEncoder(void *pvData)
 
       if (fdset[0].revents & POLLPRI)
       {
+        //read in the data
+        read(fdset[1].fd, buf, MAX_BUF);
+
+        ROS_INFO("REad Value");
+
         // lock the mutex
         MutexLock(&encoderMutex);
   
