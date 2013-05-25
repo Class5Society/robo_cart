@@ -41,6 +41,33 @@ int gpio_set_dir(std::string dirStr)
 	close(fd);
 	return 0;
 }
+/****************************************************************
+ * gpio_get_value
+ ****************************************************************/
+int gpio_get_value()
+{
+	int fd;
+	char ch;
+        int value =0;
+
+	std::string buf = encoderPort + "/value";
+ 
+	fd = open((char *) buf.c_str(), O_RDONLY);
+	if (fd < 0) {
+		return -1;
+	}
+ 
+	read(fd, &ch, 1);
+	close(fd);
+
+	if (ch != '0') {
+		value = 1;
+	} else {
+		value = 0;
+	}
+ 
+        return value;
+}
 
 /****************************************************************
  * gpio_fd_open
@@ -124,8 +151,9 @@ void *pollEncoder(void *pvData)
       {
         //read in the data
         read(fdset[1].fd, buf, MAX_BUF);
-
-        ROS_INFO("REad Value");
+        
+        
+        ROS_INFO("REad Value %c", buf[0]);
 
         // lock the mutex
         MutexLock(&encoderMutex);
