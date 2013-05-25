@@ -69,16 +69,17 @@ include_directories(include
 # )
 
 ## Declare a cpp executable
-# add_executable(cart_sensors_node src/cart_sensors_node.cpp)
+add_executable(encoder_node src/encoder.cpp src/os.cxx)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(cart_sensors_node cart_sensors_generate_messages_cpp)
+add_dependencies(encoder_node cart_sensors_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(cart_sensors_node
-#   ${catkin_LIBRARIES}
-# )
+ target_link_libraries(encoder_node
+   ${CMAKE_THREAD_LIBS_INIT}
+   ${catkin_LIBRARIES}
+ )
 
 #############
 ## Install ##

@@ -13,6 +13,9 @@
 #include <time.h>
 #include <stdint.h>
 #include <signal.h>
+#include <poll.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #ifdef __WIN32
 #define WIN32_LEAN_AND_MEAN

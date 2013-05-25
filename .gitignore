@@ -11,3 +11,6 @@
 *.lai
 *.la
 *.a
+
+#gvim swap files
+*.swp
