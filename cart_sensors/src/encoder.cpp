@@ -176,7 +176,7 @@ void *pollEncoder(void *pvData)
 
 void CartDistance(const ros::TimerEvent&)
 {
-  ROS_INFO("Callback 1 triggered NumCounts %llu",numCounts);
+  ROS_INFO("Callback 1 triggered NumCounts %lu",numCounts);
 }
 
 
