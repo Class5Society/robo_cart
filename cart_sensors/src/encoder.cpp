@@ -1,8 +1,8 @@
 #include "cart_sensors/cart_sensors.h"
 
 /* code to read the encoder */
-#define POLL_TIMEOUT 1000  /*milliseconds*/
-#define MAX_BUF 256
+#define POLL_TIMEOUT 100  /*milliseconds*/
+#define MAX_BUF 1
 std::string encoderPort;
 uint64_t numCounts;
 MUTEX encoderMutex;
@@ -41,33 +41,6 @@ int gpio_set_dir(std::string dirStr)
 	close(fd);
 	return 0;
 }
-/****************************************************************
- * gpio_get_value
- ****************************************************************/
-int gpio_get_value()
-{
-	int fd;
-	char ch;
-        int value =0;
-
-	std::string buf = encoderPort + "/value";
- 
-	fd = open((char *) buf.c_str(), O_RDONLY);
-	if (fd < 0) {
-		return -1;
-	}
- 
-	read(fd, &ch, 1);
-	close(fd);
-
-	if (ch != '0') {
-		value = 1;
-	} else {
-		value = 0;
-	}
- 
-        return value;
-}
 
 /****************************************************************
  * gpio_fd_open
@@ -102,8 +75,8 @@ void *pollEncoder(void *pvData)
    int timeOut;
    int pollReturn;
    int gpioPort;
-   char *buf[MAX_BUF];
-
+   char buf;
+   int value = 0;
    int errorRet = -1;
    int closeRet = 0;
  
@@ -129,8 +102,6 @@ void *pollEncoder(void *pvData)
    {
      pthread_exit((void *) &errorRet);
    } 
-   ROS_INFO("GOT_HERE")
- 
    while (ros::ok())
    { 
       //clear out the memory
@@ -147,15 +118,11 @@ void *pollEncoder(void *pvData)
       {
          pthread_exit((void *) &errorRet);
       }
-      ROS_INFO("In Thread");
       if (fdset[0].revents & POLLPRI)
       {
         //read in the data
-        read(fdset[1].fd, buf, MAX_BUF);
-        
-        
-        ROS_INFO("REad Value %s", buf[0]);
-
+        read(fdset[0].fd, &buf, 1);
+       
         // lock the mutex
         MutexLock(&encoderMutex);
   
@@ -177,7 +144,7 @@ void *pollEncoder(void *pvData)
 
 void CartDistance(const ros::TimerEvent&)
 {
-  ROS_INFO("Callback 1 triggered NumCounts %lu",numCounts);
+  ROS_INFO("Callback 1 triggered NumCounts %llu",numCounts);
 }
 
 
@@ -203,7 +170,7 @@ int main(int argc, char **argv)
    * Timers allow you to get a callback at a specified rate.  Here we create
    * two timers at different rates as a demonstration.
    */
-  ros::Timer timer1 = n.createTimer(ros::Duration(0.1), CartDistance);
+  ros::Timer timer1 = n.createTimer(ros::Duration(.01), CartDistance);
 
   ros::spin();
 
