@@ -2,6 +2,7 @@
 
 /* code to read the encoder */
 #define POLL_TIMEOUT 1000  /*milliseconds*/
+#define MAX_BUF 256
 std::string encoderPort;
 uint64_t numCounts;
 MUTEX encoderMutex;
@@ -40,6 +41,33 @@ int gpio_set_dir(std::string dirStr)
 	close(fd);
 	return 0;
 }
+/****************************************************************
+ * gpio_get_value
+ ****************************************************************/
+int gpio_get_value()
+{
+	int fd;
+	char ch;
+        int value =0;
+
+	std::string buf = encoderPort + "/value";
+ 
+	fd = open((char *) buf.c_str(), O_RDONLY);
+	if (fd < 0) {
+		return -1;
+	}
+ 
+	read(fd, &ch, 1);
+	close(fd);
+
+	if (ch != '0') {
+		value = 1;
+	} else {
+		value = 0;
+	}
+ 
+        return value;
+}
 
 /****************************************************************
  * gpio_fd_open
@@ -74,6 +102,7 @@ void *pollEncoder(void *pvData)
    int timeOut;
    int pollReturn;
    int gpioPort;
+   char *buf[MAX_BUF];
 
    int errorRet = -1;
    int closeRet = 0;
@@ -120,6 +149,12 @@ void *pollEncoder(void *pvData)
       ROS_INFO("In Thread");
       if (fdset[0].revents & POLLPRI)
       {
+        //read in the data
+        read(fdset[1].fd, buf, MAX_BUF);
+        
+        
+        ROS_INFO("REad Value %s", buf[0]);
+
         // lock the mutex
         MutexLock(&encoderMutex);
   
