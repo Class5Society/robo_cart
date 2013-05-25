@@ -27,6 +27,6 @@
 #define POS_LEFT_STOP 8.0
 #define POS_RIGHT_STOP 2.0
 
-#define MAX_THROT_POS 250
-#define MIN_THROT_POS 10
+#define MAX_THROT_POS 100.0
+#define MIN_THROT_POS 70.0
 #endif

@@ -113,12 +113,12 @@ void TeleopCart::keyLoop()
         break;
       case KEYCODE_S:
         ROS_DEBUG("STOP");
-        brake = 1;
+        brake = -1;
         dirty = true;
         break;
       case KEYCODE_A:
         ROS_DEBUG("ADVANCE");
-        brake = 0;
+        brake = 1;
         dirty = true;
         break;
     }
@@ -130,7 +130,6 @@ void TeleopCart::keyLoop()
 
     if(dirty ==true)
     {
-      ROS_INFO("%f",steer_incr);
       cart_pub_.publish(drvCart);    
       dirty=false;
     }
