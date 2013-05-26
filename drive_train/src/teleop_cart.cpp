@@ -130,6 +130,7 @@ void TeleopCart::keyLoop()
 
     if(dirty ==true)
     {
+      ROS_INFO("Brake %f",drvCart.brake);
       cart_pub_.publish(drvCart);    
       dirty=false;
     }
