@@ -3,7 +3,7 @@
 /* code to read the encoder */
 #define POLL_TIMEOUT 1  /*milliseconds*/
 #define MAX_BUF 1
-#define PULSE_DIST 2.68
+#define PULSE_DIST 3.14
 #define NUM_PULSE 12
 #define INCH_PER_FOOT 12.0
 

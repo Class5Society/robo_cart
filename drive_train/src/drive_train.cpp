@@ -53,13 +53,16 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
   //add the steering to the current direction
   currentBrakePos += msg->brake;
 
+  ROS_INFO("Brake: [%f]", currentBrakePos);
+  ROS_INFO("Brake: [%d]", brakeID);
   //check limits
-  if (currentBrakePos > brakeFullStop)
+
+  if (msg->brake == -1)
      {
      currentBrakePos = brakeFullStop;
       }
 
-  if (currentBrakePos < brakeOff)
+  if (msg->brake == 1)
      {
      currentBrakePos = brakeOff;
      }
@@ -77,7 +80,7 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
      currentThrottlePos = MAX_THROT_POS;
       }
 
-  if (currentThrottlePos < MIN_THROT_POS)
+  if (currentThrottlePos < MIN_THROT_POS || msg->brake == -1)
      {
      currentThrottlePos = MIN_THROT_POS;
      }
@@ -179,6 +182,7 @@ int main(int argc, char **argv)
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerStartPos);
   currentSteerPos = steerStartPos;
   fastCmdPosEnable(steerID, inpValue);
+  fastCmdPosSet(steerID, inpValue);
 
 
   //
@@ -205,6 +209,7 @@ int main(int argc, char **argv)
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR * brakeFullStop);
   currentBrakePos = brakeFullStop;
   fastCmdPosEnable(brakeID, inpValue);
+  fastCmdPosSet(brakeID, inpValue);
 
   //
   // Open the throttle port
