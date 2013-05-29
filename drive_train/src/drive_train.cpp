@@ -25,9 +25,10 @@ double brakeOff;
 double brakePVal;
 double brakeIVal;
 double brakeDVal;
-/**
- * This tutorial demonstrates simple receipt of messages over the ROS system.
- */
+
+//setup globals
+ros::Publisher baseState;
+
 void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
 {
   //add the steering to the current direction
@@ -53,19 +54,17 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
   //add the steering to the current direction
   currentBrakePos += msg->brake;
 
-  ROS_INFO("Brake: [%f]", currentBrakePos);
-  ROS_INFO("Brake: [%d]", brakeID);
   //check limits
 
   if (msg->brake == -1)
-     {
+  {
      currentBrakePos = brakeFullStop;
-      }
+  }
 
   if (msg->brake == 1)
-     {
+  {
      currentBrakePos = brakeOff;
-     }
+  }
 
   //set position4yy
   inpValue = (int32_t) ((double) POS_SCALE_FACTOR *currentBrakePos );
@@ -76,25 +75,28 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
 
   //check limits
   if (currentThrottlePos > MAX_THROT_POS)
-     {
+  {
      currentThrottlePos = MAX_THROT_POS;
-      }
+  }
 
   if (currentThrottlePos < MIN_THROT_POS || msg->brake == -1)
-     {
+  {
      currentThrottlePos = MIN_THROT_POS;
-     }
+  }
 
   if (throttleDrive != NULL)
   {
-  fprintf(throttleDrive,"%f\n",currentThrottlePos);
-} 
+     fprintf(throttleDrive,"%f\n",currentThrottlePos);
+  } 
 
-  //ROS_INFO("I heard: [%s]", msg->data.c_str());
-  ROS_INFO("Steering: [%f]", msg->steering);
-  ROS_INFO("CurrentPos: [%f]", currentSteerPos);
-  ROS_INFO("Throttle: [%f]", msg->throttle);
-  ROS_INFO("Brake: [%f]", msg->brake);
+}
+
+void driveTrainState(const ros::TimerEvent&)
+{
+   //create message
+   drive_train::CartDrive currBasePos;
+//   currBasePos.throttle = fscanf(throttleDrive,"%f");
+//   currBasePos.
 }
 
 int main(int argc, char **argv)
@@ -184,7 +186,6 @@ int main(int argc, char **argv)
   fastCmdPosEnable(steerID, inpValue);
   fastCmdPosSet(steerID, inpValue);
 
-
   //
   //initialize the Jaguar motor controller for brake
   //
@@ -214,7 +215,7 @@ int main(int argc, char **argv)
   //
   // Open the throttle port
   //
-  throttleDrive = fopen(g_throttleCommPort.c_str(),"w");
+  throttleDrive = fopen(g_throttleCommPort.c_str(),"r+");
   if (throttleDrive != NULL)
   {
   setbuf(throttleDrive,NULL);
@@ -237,6 +238,9 @@ int main(int argc, char **argv)
    * away the oldest ones.
    */
   ros::Subscriber sub = n.subscribe("command_cart", 1, driveTrainCallBack);
+
+  // setup the publisher for the state of the cart
+  baseState = n.advertise<drive_train::CartDrive>("cart_state",1);
 
    
   /**

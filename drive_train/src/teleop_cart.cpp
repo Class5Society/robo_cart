@@ -127,6 +127,7 @@ void TeleopCart::keyLoop()
     drvCart.steering = steering * steer_incr;
     drvCart.throttle = throttle * throt_incr;
     drvCart.brake = brake * brake_incr;
+    drvCart.header.stamp = ros::Time().now();
 
     if(dirty ==true)
     {

@@ -1,0 +1,4 @@
+<launch>
+   <param name="encoder_port" value="/dev/talos_direct/digio_11" />
+      <node pkg="cart_sensors" type="encoder_node" name="distance_trav"/>
+</launch>
