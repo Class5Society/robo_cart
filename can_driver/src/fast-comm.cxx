@@ -29,16 +29,16 @@
 // These variables are used to hold the messages as they come in from the UART.
 //
 //*****************************************************************************
-static unsigned char g_pucUARTMessage[12];
-static uint32_t g_ulUARTSize;
-static uint32_t g_ulUARTLength;
+static unsigned char gUARTMessage[12];
+static uint32_t gUARTMessageSize;
+static uint32_t gUARTMessageLenRead;
 
 //*****************************************************************************
 //
 // The current UART state and its global variable.
 //
 //*****************************************************************************
-static uint32_t g_ulUARTState = UART_STATE_IDLE;
+static uint32_t gUARTMessageState = UART_STATE_IDLE;
 
 //*****************************************************************************
 //
@@ -77,9 +77,15 @@ int fastCmdHeartbeat() {
 // This command enables the Position control mode.
 //
 //*****************************************************************************
-int fastCmdPosEnable(uint32_t jagId, int32_t inpValue)
+int fastCmdPosEnable(uint32_t jagId, double inpPosValue)
 {
 	int32_t plValue[2];
+        int32_t inpValue;
+
+        //
+        // Convert the position
+        //
+        inpValue = (int32_t) ((double) POS_SCALE_FACTOR * inpPosValue);
 
 	//
 	// Enable Position control mode.
@@ -88,7 +94,7 @@ int fastCmdPosEnable(uint32_t jagId, int32_t inpValue)
 
 	UARTSendMessage(LM_API_POS_EN | jagId, (unsigned char *) plValue, 4);
 
-	WaitForAck(LM_API_ACK | jagId, 10);
+	fastWaitForAck(LM_API_ACK | jagId, 10);
 
 }
 
@@ -104,7 +110,7 @@ int fastCmdPosDis(uint32_t jagId)
 	//
 	UARTSendMessage(LM_API_POS_DIS | jagId, 0, 0);
 
-	WaitForAck(LM_API_ACK | jagId, 10);
+	fastWaitForAck(LM_API_ACK | jagId, 10);
 
 }
 
@@ -113,9 +119,17 @@ int fastCmdPosDis(uint32_t jagId)
 // This command sets the position location
 //
 //*****************************************************************************
-int fastCmdPosSet(uint32_t jagId, int32_t inpValue)
+double fastCmdPosSet(uint32_t jagId, double inpPosValue)
 {
+        int32_t inpValue;
 	int32_t plValue[2];
+        int retVal = 0;
+        double posVal = 0;
+
+        //
+        // Convert the position
+        //
+        inpValue = (int32_t) ((double) POS_SCALE_FACTOR * inpPosValue);
 
 	//
 	// Set Position.
@@ -123,7 +137,20 @@ int fastCmdPosSet(uint32_t jagId, int32_t inpValue)
 	plValue[0] = inpValue;
 
 	UARTSendMessage(LM_API_POS_SET | jagId, (unsigned char *) plValue, 4);
-	WaitForAck(LM_API_ACK | jagId, 10);
+	retVal = fastWaitForAck(LM_API_ACK | jagId, 10);
+        
+        //check for timeout
+        if (retVal == 0)
+        {
+          //get the value from the message
+          posVal = fastParseResponse();
+          return(posVal);
+        }
+        else
+        {
+          //return the input value
+          return(inpPosValue);           
+        }
 
 }
 
@@ -133,9 +160,15 @@ int fastCmdPosSet(uint32_t jagId, int32_t inpValue)
 // This command sets the position P value for PID.
 //
 //*****************************************************************************
-int fastCmdPosP(uint32_t jagId, int32_t inpValue)
+int fastCmdPosP(uint32_t jagId, double inpPValue)
 {
 	int32_t plValue[2];
+        int32_t inpValue;
+
+        //
+        // Convert the position
+        //
+        inpValue = (int32_t) ((double) POS_SCALE_FACTOR * inpPValue);
 
 	//
 	// P value in Position control mode.
@@ -143,7 +176,7 @@ int fastCmdPosP(uint32_t jagId, int32_t inpValue)
 	plValue[0] = inpValue;
 
 	UARTSendMessage(LM_API_POS_PC | jagId, (unsigned char *) plValue, 4);
-	WaitForAck(LM_API_ACK | jagId, 10);
+	fastWaitForAck(LM_API_ACK | jagId, 10);
 }
 
 //*****************************************************************************
@@ -151,9 +184,16 @@ int fastCmdPosP(uint32_t jagId, int32_t inpValue)
 // This command sets the position I value for PID.
 //
 //*****************************************************************************
-int fastCmdPosI(uint32_t jagId, int32_t inpValue)
+int fastCmdPosI(uint32_t jagId, double inpIValue)
 {
 	int32_t plValue[2];
+        int32_t inpValue;
+
+        //
+        // Convert the position
+        //
+        inpValue = (int32_t) ((double) POS_SCALE_FACTOR * inpIValue);
+
 
 	//
 	// Set the I value in Position control mode.
@@ -161,7 +201,7 @@ int fastCmdPosI(uint32_t jagId, int32_t inpValue)
 	plValue[0] = inpValue;
 
 	UARTSendMessage(LM_API_POS_IC | jagId, (unsigned char *) plValue, 4);
-	WaitForAck(LM_API_ACK | jagId, 10);
+	fastWaitForAck(LM_API_ACK | jagId, 10);
 }
 
 //*****************************************************************************
@@ -169,9 +209,16 @@ int fastCmdPosI(uint32_t jagId, int32_t inpValue)
 // This command sets the position D value for PID.
 //
 //*****************************************************************************
-int fastCmdPosD(uint32_t jagId, int32_t inpValue)
+int fastCmdPosD(uint32_t jagId, double inpDValue)
 {
 	int32_t plValue[2];
+        int32_t inpValue;
+
+        //
+        // Convert the position
+        //
+        inpValue = (int32_t) ((double) POS_SCALE_FACTOR * inpDValue);
+
 
 	//
 	// Set the D value in Position control mode.
@@ -179,7 +226,7 @@ int fastCmdPosD(uint32_t jagId, int32_t inpValue)
 	plValue[0] = inpValue;
 
 	UARTSendMessage(LM_API_POS_DC | jagId, (unsigned char *) plValue, 4);
-	WaitForAck(LM_API_ACK | jagId, 10);
+	fastWaitForAck(LM_API_ACK | jagId, 10);
 }
 
 //*****************************************************************************
@@ -206,7 +253,7 @@ int fastCmdPosRef(uint32_t jagId, int32_t inpValue)
 	// Set the reference in Position control mode.
 	//
 	UARTSendMessage(LM_API_POS_REF | jagId, (unsigned char *) plValue, 1);
-	WaitForAck(LM_API_ACK | jagId, 10);
+	fastWaitForAck(LM_API_ACK | jagId, 10);
 }
 
 //*****************************************************************************
@@ -254,7 +301,7 @@ int fastConfigTurns(uint32_t jagId, int32_t numTurns) {
 	}
 
 	UARTSendMessage(LM_API_CFG_POT_TURNS | jagId, (unsigned char *) plValue, 2);
-	WaitForAck(LM_API_ACK | jagId, 10);
+	fastWaitForAck(LM_API_ACK | jagId, 10);
 }
 
 //*****************************************************************************
@@ -262,8 +309,15 @@ int fastConfigTurns(uint32_t jagId, int32_t numTurns) {
 // This sets the max percentage of voltage out
 //
 //*****************************************************************************
-int fastConfigMaxV(uint32_t jagId, int32_t maxV) {
+int fastConfigMaxV(uint32_t jagId, double inpMaxV) {
+
 	int32_t plValue[2];
+        int32_t maxV;
+
+        //
+        // Convert the voltage
+        //
+        maxV = (int32_t) ((double) MAX_VOUT_SCALE_FACTOR * inpMaxV);
 
 	// Get the Max voltage out setting.
 	//
@@ -281,7 +335,7 @@ int fastConfigMaxV(uint32_t jagId, int32_t maxV) {
 	}
 
 	UARTSendMessage(LM_API_CFG_MAX_VOUT | jagId, (unsigned char *) plValue, 2);
-	WaitForAck(LM_API_ACK | jagId, 10);
+	fastWaitForAck(LM_API_ACK | jagId, 10);
 }
 
 
@@ -330,7 +384,7 @@ int fastSystemEnum(uint32_t jagId)
      //
      // Wait for a device query response.
      //
-     WaitForAck(CAN_MSGID_API_DEVQUERY | jagId, 100);
+     fastWaitForAck(CAN_MSGID_API_DEVQUERY | jagId, 100);
 }
 
 //*****************************************************************************
@@ -346,7 +400,7 @@ int fastSystemQuery(uint32_t jagId)
 	//
 	UARTSendMessage(CAN_MSGID_API_DEVQUERY | jagId, 0, 0);
 
-	WaitForAck(CAN_MSGID_API_DEVQUERY | jagId, 10);
+	fastWaitForAck(CAN_MSGID_API_DEVQUERY | jagId, 10);
 }
 
 
@@ -374,19 +428,18 @@ int fastSystemSync(uint32_t syncGrp)
 // Parse the UART response message from the network.
 //
 //*****************************************************************************
-void fastParseResponse(void) {
+double fastParseResponse(void) {
 	uint32_t ulID;
-	int32_t lValue, lValueFractional, lValueOriginal;
-	char pcTempString[100];
+	int32_t lValue;
+        uint16_t shortValue;
+        uint8_t byteValue;
 	double dValue;
-	int iDevice, iTemp;
-	int iIdx;
-	bool bFound = false;
+	int iDevice;
 
 	//
 	// Get the device number out of the first byte of the message.
 	//
-	ulID = *(uint32_t *) g_pucUARTMessage;
+	ulID = *(uint32_t *) gUARTMessage;
 	iDevice = ulID & CAN_MSGID_DEVNO_M;
 
 	//
@@ -401,7 +454,7 @@ void fastParseResponse(void) {
 	// Handle the Position control mode position set request.
 	//
 	case LM_API_POS_SET: {
-		lValue = *(int32_t *) (g_pucUARTMessage + 4);
+		lValue = *(int32_t *) (gUARTMessage + 4);
 
                 dValue = (double) lValue / 65536;
 
@@ -412,7 +465,7 @@ void fastParseResponse(void) {
 	// Handle the Position control mode P parameter set request.
 	//
 	case LM_API_POS_PC: {
-		lValue = *(int32_t *) (g_pucUARTMessage + 4);
+		lValue = *(int32_t *) (gUARTMessage + 4);
 
                 dValue = (double) lValue / 65536;
 
@@ -423,7 +476,7 @@ void fastParseResponse(void) {
 	// Handle the Position control mode I parameter set request.
 	//
 	case LM_API_POS_IC: {
-		lValue = *(int32_t *) (g_pucUARTMessage + 4);
+		lValue = *(int32_t *) (gUARTMessage + 4);
 
                 dValue = (double) lValue / 65536;
 
@@ -434,7 +487,7 @@ void fastParseResponse(void) {
 	// Handle the Position control mode D parameter set request.
 	//
 	case LM_API_POS_DC: {
-		lValue = *(int32_t *) (g_pucUARTMessage + 4);
+		lValue = *(int32_t *) (gUARTMessage + 4);
 
                 dValue = (double) lValue / 65536;
 
@@ -445,8 +498,8 @@ void fastParseResponse(void) {
 	// Handle the Position control mode position reference set request.
 	//
 	case LM_API_POS_REF: {
-		printf("pos ref (%d) = %d\n", ulID & CAN_MSGID_DEVNO_M,
-				g_pucUARTMessage[4]);
+                byteValue = gUARTMessage[4];
+                dValue = (double) byteValue;
 
 		break;
 	}
@@ -458,7 +511,7 @@ void fastParseResponse(void) {
 		//
 		// Grab the response data and store it into a single variable.
 		//
-		lValue = *(int32_t *) (g_pucUARTMessage + 4);
+		lValue = *(int32_t *) (gUARTMessage + 4);
 
 		//
 		// Update the window with the new value.
@@ -474,8 +527,8 @@ void fastParseResponse(void) {
 	// Handle the get Number of Pot Turns request.
 	//
 	case LM_API_CFG_POT_TURNS: {
-		printf("config turns (%d) = %d\n", ulID & CAN_MSGID_DEVNO_M,
-				*(unsigned short *) (g_pucUARTMessage + 4));
+                shortValue =  *(unsigned short *) (gUARTMessage + 4);
+                dValue = (double) shortValue;
 
 		break;
 	}
@@ -485,14 +538,14 @@ void fastParseResponse(void) {
 	// Handle the get Maximum Voltage out response.
 	//
 	case LM_API_CFG_MAX_VOUT: {
-		lValue = *(unsigned short *) (g_pucUARTMessage + 4);
-
-		printf("config maxvout (%d) = %d\n", ulID & CAN_MSGID_DEVNO_M,
-				lValue);
-
+                shortValue =  *(unsigned short *) (gUARTMessage + 4);
+                dValue = (double) shortValue;
 		break;
 	}
-}
+    }
+
+    //return the value
+    return(dValue);
 }
 //*****************************************************************************
 //
@@ -522,34 +575,34 @@ int fastWaitForAck(uint32_t ulID, uint32_t ulTimeout) {
 			//
 			// Reset the length of the UART message.
 			//
-			g_ulUARTLength = 0;
+			gUARTMessageLenRead = 0;
 
 			//
 			// Set the state such that the next byte received is the size
 			// of the message.
 			//
-			g_ulUARTState = UART_STATE_LENGTH;
+			gUARTMessageState = UART_STATE_LENGTH;
 		}
 
 		//
 		// See if this byte is the size of the message.
 		//
-		else if (g_ulUARTState == UART_STATE_LENGTH) {
+		else if (gUARTMessageState == UART_STATE_LENGTH) {
 			//
 			// Save the size of the message.
 			//
-			g_ulUARTSize = ucChar;
+			gUARTMessageSize = ucChar;
 
 			//
 			// Subsequent bytes received are the message data.
 			//
-			g_ulUARTState = UART_STATE_DATA;
+			gUARTMessageState = UART_STATE_DATA;
 		}
 
 		//
 		// See if the previous character was an escape character.
 		//
-		else if (g_ulUARTState == UART_STATE_ESCAPE) {
+		else if (gUARTMessageState == UART_STATE_ESCAPE) {
 			//
 			// See if this 0xfe, the escaped version of 0xff.
 			//
@@ -557,12 +610,12 @@ int fastWaitForAck(uint32_t ulID, uint32_t ulTimeout) {
 				//
 				// Store a 0xff in the message buffer.
 				//
-				g_pucUARTMessage[g_ulUARTLength++] = 0xff;
+				gUARTMessage[gUARTMessageLenRead++] = 0xff;
 
 				//
 				// Subsequent bytes received are the message data.
 				//
-				g_ulUARTState = UART_STATE_DATA;
+				gUARTMessageState = UART_STATE_DATA;
 			}
 
 			//
@@ -572,12 +625,12 @@ int fastWaitForAck(uint32_t ulID, uint32_t ulTimeout) {
 				//
 				// Store a 0xfe in the message buffer.
 				//
-				g_pucUARTMessage[g_ulUARTLength++] = 0xfe;
+				gUARTMessage[gUARTMessageLenRead++] = 0xfe;
 
 				//
 				// Subsequent bytes received are the message data.
 				//
-				g_ulUARTState = UART_STATE_DATA;
+				gUARTMessageState = UART_STATE_DATA;
 			}
 
 			//
@@ -586,14 +639,14 @@ int fastWaitForAck(uint32_t ulID, uint32_t ulTimeout) {
 			// ignored until another start of packet is received.
 			//
 			else {
-				g_ulUARTState = UART_STATE_IDLE;
+				gUARTMessageState = UART_STATE_IDLE;
 			}
 		}
 
 		//
 		// See if this is a part of the message data.
 		//
-		else if (g_ulUARTState == UART_STATE_DATA) {
+		else if (gUARTMessageState == UART_STATE_DATA) {
 			//
 			// See if this character is an escape character.
 			//
@@ -601,12 +654,12 @@ int fastWaitForAck(uint32_t ulID, uint32_t ulTimeout) {
 				//
 				// The next byte is an escaped byte.
 				//
-				g_ulUARTState = UART_STATE_ESCAPE;
+				gUARTMessageState = UART_STATE_ESCAPE;
 			} else {
 				//
 				// Store this byte in the message buffer.
 				//
-				g_pucUARTMessage[g_ulUARTLength++] = ucChar;
+				gUARTMessage[gUARTMessageLenRead++] = ucChar;
 			}
 		}
 
@@ -615,20 +668,15 @@ int fastWaitForAck(uint32_t ulID, uint32_t ulTimeout) {
 		// processed (i.e. the most recent byte received was the end of the
 		// message).
 		//
-		if ((g_ulUARTLength == g_ulUARTSize)
-				&& (g_ulUARTState == UART_STATE_DATA)) {
+		if ((gUARTMessageLenRead == gUARTMessageSize)
+				&& (gUARTMessageState == UART_STATE_DATA)) {
 			//
 			// The UART interface is idle, meaning all bytes will be
 			// dropped until the next start of packet byte.
 			//
-			g_ulUARTState = UART_STATE_IDLE;
+			gUARTMessageState = UART_STATE_IDLE;
 
-			//
-			// Parse out the data that was received.
-			//
-			fastParseResponse();
-
-			if (*(uint32_t *) g_pucUARTMessage == ulID) {
+			if (*(uint32_t *) gUARTMessage == ulID) {
 				return (0);
 			}
 		}

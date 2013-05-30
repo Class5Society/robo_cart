@@ -26,6 +26,11 @@ double brakePVal;
 double brakeIVal;
 double brakeDVal;
 
+//setup the actual values
+double actualSteerPos;
+double actualBrakePos;
+double actualThrottlePos;
+
 //setup globals
 ros::Publisher baseState;
 
@@ -47,9 +52,7 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
 
   
   //set position4yy
-  int32_t inpValue;
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR *currentSteerPos );
-  fastCmdPosSet(steerID, inpValue);
+  actualSteerPos = fastCmdPosSet(steerID, currentSteerPos);
 
   //add the steering to the current direction
   currentBrakePos += msg->brake;
@@ -67,8 +70,7 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
   }
 
   //set position4yy
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR *currentBrakePos );
-  fastCmdPosSet(brakeID, inpValue);
+  actualBrakePos = fastCmdPosSet(brakeID, currentBrakePos);
 
   //add the steering to the current direction
   currentThrottlePos += msg->throttle;
@@ -86,7 +88,10 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
 
   if (throttleDrive != NULL)
   {
-     fprintf(throttleDrive,"%f\n",currentThrottlePos);
+     fprintf(throttleDrive,"%lf\n",currentThrottlePos);
+     //read back the value to get the actual position
+     
+     fscanf(throttleDrive, "%lf", &actualThrottlePos);
   } 
 
 }
@@ -95,8 +100,13 @@ void driveTrainState(const ros::TimerEvent&)
 {
    //create message
    drive_train::CartDrive currBasePos;
-//   currBasePos.throttle = fscanf(throttleDrive,"%f");
-//   currBasePos.
+   currBasePos.steering = actualSteerPos;
+   currBasePos.brake = actualBrakePos;
+   currBasePos.throttle = actualThrottlePos;
+   currBasePos.header.stamp = ros::Time().now();
+   
+   //publish the message
+   baseState.publish(currBasePos);
 }
 
 int main(int argc, char **argv)
@@ -164,27 +174,22 @@ int main(int argc, char **argv)
   fastConfigTurns(steerID,POT_MAX_TURNS);
 
   //Configure the max output voltage
-  int32_t outputVoltage;
-  outputVoltage = (int32_t) ((double) MAX_VOUT_SCALE_FACTOR * (double) MAX_VOUT_PERC);
-  fastConfigMaxV(steerID,outputVoltage);
+  fastConfigMaxV(steerID,(double) MAX_VOUT_PERC);
 
   //set the reference
   fastCmdPosRef(steerID,POTENTIOMETER_REF);
 
   //set the values or P I and D
-  int32_t inpValue;
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerIVal);
-  fastCmdPosI(steerID, inpValue);
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerDVal);
-  fastCmdPosD(steerID, inpValue);
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerPVal);
-  fastCmdPosP(steerID, inpValue);
+  fastCmdPosI(steerID, steerIVal);
+  fastCmdPosD(steerID, steerDVal);
+  fastCmdPosP(steerID, steerPVal);
 
   //enable the Positon mode
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * steerStartPos);
   currentSteerPos = steerStartPos;
-  fastCmdPosEnable(steerID, inpValue);
-  fastCmdPosSet(steerID, inpValue);
+  fastCmdPosEnable(steerID, steerStartPos);
+
+  // set the initial position
+  actualSteerPos = fastCmdPosSet(steerID, currentSteerPos);
 
   //
   //initialize the Jaguar motor controller for brake
@@ -192,25 +197,22 @@ int main(int argc, char **argv)
   fastConfigTurns(brakeID,POT_MAX_TURNS);
 
   //Configure the max output voltage
-  outputVoltage = (int32_t) ((double) MAX_VOUT_SCALE_FACTOR * (double) MAX_VOUT_PERC);
-  fastConfigMaxV(brakeID,outputVoltage);
+  fastConfigMaxV(brakeID, (double) MAX_VOUT_PERC);
 
   //set the reference
   fastCmdPosRef(brakeID,POTENTIOMETER_REF);
 
   //set the values or P I and D
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * brakeIVal);
-  fastCmdPosI(brakeID, inpValue);
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * brakeDVal);
-  fastCmdPosD(brakeID, inpValue);
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * brakePVal);
-  fastCmdPosP(brakeID, inpValue);
+  fastCmdPosI(brakeID, brakeIVal);
+  fastCmdPosD(brakeID, brakeDVal);
+  fastCmdPosP(brakeID, brakePVal);
 
   //enable the Positon mode
-  inpValue = (int32_t) ((double) POS_SCALE_FACTOR * brakeFullStop);
   currentBrakePos = brakeFullStop;
-  fastCmdPosEnable(brakeID, inpValue);
-  fastCmdPosSet(brakeID, inpValue);
+  fastCmdPosEnable(brakeID, brakeFullStop);
+
+  // set the initial position
+  actualBrakePos = fastCmdPosSet(brakeID, currentBrakePos);
 
   //
   // Open the throttle port
@@ -218,10 +220,14 @@ int main(int argc, char **argv)
   throttleDrive = fopen(g_throttleCommPort.c_str(),"r+");
   if (throttleDrive != NULL)
   {
-  setbuf(throttleDrive,NULL);
-  currentThrottlePos = MIN_THROT_POS;
-  fprintf(throttleDrive,"%f\n",currentThrottlePos);
+     setbuf(throttleDrive,NULL);
+     currentThrottlePos = MIN_THROT_POS;
+     fprintf(throttleDrive,"%lf\n",currentThrottlePos);
+
+     //read back the value to get the actual position
+     fscanf(throttleDrive, "%lf", &actualThrottlePos);
   }
+
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages
    * on a given topic.  This invokes a call to the ROS
@@ -242,6 +248,8 @@ int main(int argc, char **argv)
   // setup the publisher for the state of the cart
   baseState = n.advertise<drive_train::CartDrive>("cart_state",1);
 
+  //setup the timer to fire out the publisher
+  ros::Timer pubTimer = n.createTimer(ros::Duration(.01), driveTrainState);
    
   /**
    * ros::spin() will enter a loop, pumping callbacks.  With this version, all

@@ -61,5 +61,13 @@
 //*****************************************************************************
 #define PSTATUS_MAX_ID  LM_PSTAT_CANERR_B1
 
+//*****************************************************************************
+//
+// Define the scale factors for the position and voltage values
+//
+//*****************************************************************************
+#define POS_SCALE_FACTOR 65536
+#define MAX_VOUT_SCALE_FACTOR 3072
+
 
 #endif

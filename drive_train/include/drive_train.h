@@ -17,8 +17,6 @@
 #define KEYCODE_S 0x73
 #define KEYCODE_A 0x61
 
-#define POS_SCALE_FACTOR 65536
-#define MAX_VOUT_SCALE_FACTOR 3072
 #define MAX_VOUT_PERC 1.0 
 
 #define POT_MAX_TURNS 10
