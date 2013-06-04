@@ -76,14 +76,14 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
   currentThrottlePos += msg->throttle;
 
   //check limits
-  if (currentThrottlePos > MAX_THROT_POS)
+  if (currentThrottlePos > throttleStopPos)
   {
-     currentThrottlePos = MAX_THROT_POS;
+     currentThrottlePos = throttleStopPos;
   }
 
-  if (currentThrottlePos < MIN_THROT_POS || msg->brake == -1)
+  if (currentThrottlePos < throttleStartPos || msg->brake == -1)
   {
-     currentThrottlePos = MIN_THROT_POS;
+     currentThrottlePos = throttleStartPos;
   }
 
   if (throttleDrive != NULL)
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
   if (throttleDrive != NULL)
   {
      setbuf(throttleDrive,NULL);
-     currentThrottlePos = MIN_THROT_POS;
+     currentThrottlePos = throttleStartPos;
      fprintf(throttleDrive,"%lf\n",currentThrottlePos);
 
      //read back the value to get the actual position
