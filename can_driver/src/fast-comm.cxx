@@ -23,6 +23,7 @@
 //*****************************************************************************
 
 #include "can_driver/can_driver.h"
+#include "ros/ros.h"
 
 //*****************************************************************************
 //
@@ -274,6 +275,39 @@ int fastCmdPosSetNoAck(uint32_t jagId, int32_t inpValue)
 
 }
 
+//*****************************************************************************
+//
+// This command get the position location
+//
+//*****************************************************************************
+double fastCmdPosGet(uint32_t jagId)
+{
+	int32_t plValue[2];
+        int retVal;
+        double posVal;
+
+	//
+	// Request the current position.
+	//
+	UARTSendMessage(LM_API_STATUS_POS | jagId, 0, 0);
+
+
+	retVal = fastWaitForAck(LM_API_STATUS_POS | jagId, 10);
+
+        //check for timeout
+        if (retVal == 0)
+        {
+          posVal = fastParseResponse();
+          return(posVal);
+        }
+        else
+        {
+          //return the input value
+          return(-1);           
+        }
+
+}
+
 
 //*****************************************************************************
 //
@@ -433,7 +467,7 @@ double fastParseResponse(void) {
 	int32_t lValue;
         uint16_t shortValue;
         uint8_t byteValue;
-	double dValue;
+	double dValue = -1;
 	int iDevice;
 
 	//
@@ -441,6 +475,7 @@ double fastParseResponse(void) {
 	//
 	ulID = *(uint32_t *) gUARTMessage;
 	iDevice = ulID & CAN_MSGID_DEVNO_M;
+
 
 	//
 	// Read the actual command out of the message.
@@ -456,7 +491,7 @@ double fastParseResponse(void) {
 	case LM_API_POS_SET: {
 		lValue = *(int32_t *) (gUARTMessage + 4);
 
-                dValue = (double) lValue / 65536;
+                dValue = (double) lValue / POS_SCALE_FACTOR;
 
 		break;
 	}
@@ -467,7 +502,7 @@ double fastParseResponse(void) {
 	case LM_API_POS_PC: {
 		lValue = *(int32_t *) (gUARTMessage + 4);
 
-                dValue = (double) lValue / 65536;
+                dValue = (double) lValue / POS_SCALE_FACTOR;
 
 		break;
 	}
@@ -478,7 +513,7 @@ double fastParseResponse(void) {
 	case LM_API_POS_IC: {
 		lValue = *(int32_t *) (gUARTMessage + 4);
 
-                dValue = (double) lValue / 65536;
+                dValue = (double) lValue / POS_SCALE_FACTOR;
 
 		break;
 	}
@@ -489,7 +524,7 @@ double fastParseResponse(void) {
 	case LM_API_POS_DC: {
 		lValue = *(int32_t *) (gUARTMessage + 4);
 
-                dValue = (double) lValue / 65536;
+                dValue = (double) lValue / POS_SCALE_FACTOR;
 
 		break;
 	}
@@ -516,7 +551,7 @@ double fastParseResponse(void) {
 		//
 		// Update the window with the new value.
 		//
-                dValue = (double) lValue / 65536;
+                dValue = (double) lValue / POS_SCALE_FACTOR;
 
 
 		break;

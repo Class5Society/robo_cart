@@ -11,6 +11,7 @@ int fastCmdHeartbeat();
 int fastCmdPosEnable(uint32_t jagId, double inpPosValue);
 int fastCmdPosDis(uint32_t jagId);
 double fastCmdPosSet(uint32_t jagId, double inpPosValue);
+double fastCmdPosGet(uint32_t jagId);
 int fastCmdPosP(uint32_t jagId, double inpPValue);
 int fastCmdPosI(uint32_t jagId, double inpIValue);
 int fastCmdPosD(uint32_t jagId, double inpDValue);

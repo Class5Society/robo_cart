@@ -19,6 +19,7 @@ FILE *throttleDrive;
 double throttleStartPos;
 double throttleStopPos;
 
+static int32_t brakeState = 0;
 double currentBrakePos;
 double brakeFullStop;
 double brakeOff;
@@ -34,6 +35,116 @@ double actualThrottlePos;
 //setup globals
 ros::Publisher baseState;
 
+
+//create mapping class
+class mapLinearMoves
+{
+public:
+  mapLinearMoves();
+  void initMap(double actualMinVal, double actualMaxVal, double inpMinVal, double inpMaxVal);
+  void initMap(double actualMinVal, double actualMaxVal, double inpMinVal, double inpMaxVal, double inpMidVal);
+  double getValue(double inpVal);
+private:
+   double aMinVal;
+   double aMaxVal;
+   double slope;
+   double intercept;
+   double aMidVal;
+   double iMinVal;
+   double iMaxVal;
+   double iMidVal;
+};
+
+mapLinearMoves::mapLinearMoves()
+{
+   aMinVal = 0;
+   aMaxVal = 0;
+   slope = 0;
+   intercept = 0;
+   aMidVal = 0;
+   iMinVal = 0;
+   iMaxVal = 0;
+   iMidVal = 0;
+}
+
+void mapLinearMoves::initMap(double actualMinVal, double actualMaxVal, double inpMinVal, double inpMaxVal)
+{
+    //compute the intercept and slope
+    slope = (actualMaxVal - actualMinVal) / (inpMaxVal - inpMinVal);
+    intercept = actualMaxVal - (slope*inpMaxVal);
+     
+    //set the values
+    aMinVal = actualMinVal;
+    aMaxVal = actualMaxVal;
+    iMinVal = inpMinVal;
+    iMaxVal = inpMaxVal;
+    iMidVal = (inpMaxVal + inpMinVal)/2;
+    aMidVal = intercept; 
+}
+
+void mapLinearMoves::initMap(double actualMinVal, double actualMaxVal, 
+                               double inpMinVal, double inpMaxVal, 
+                               double inpMidVal)
+{
+    //compute the intercept and slope
+    slope = (actualMaxVal - actualMinVal) / (inpMaxVal - inpMinVal);
+    intercept = actualMaxVal - (slope*inpMaxVal);
+     
+    //set the values
+    aMinVal = actualMinVal;
+    aMaxVal = actualMaxVal;
+    iMinVal = inpMinVal;
+    iMaxVal = inpMaxVal;
+    iMidVal = (inpMaxVal + inpMinVal)/2;
+    aMidVal = inpMidVal; 
+}
+
+double mapLinearMoves::getValue(double inpVal)
+{
+     //create the value
+     double currValue = aMinVal;
+
+     //compute the current value
+     currValue = slope*inpVal + intercept;
+
+     //check the bounds
+     if (currValue < aMinVal)
+     {
+         //set it to the minium
+         currValue = aMinVal;
+     }
+
+     if (currValue > aMaxVal)
+     {
+         //set it to the maximum
+         currValue = aMaxVal;
+     }
+
+     //check to see if it is in the middle
+     if (inpVal == iMidVal)
+     {
+         currValue = aMidVal;
+     }
+
+     //return the value
+     return(currValue);
+}
+
+
+
+
+// create global maps
+mapLinearMoves steerMap;
+mapLinearMoves brakeMap;
+mapLinearMoves throttleMap;
+mapLinearMoves maxThrottleMap;
+
+
+//*******************************************
+//
+//keyboard callback function
+//
+//*******************************************
 void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
 {
   //add the steering to the current direction
@@ -52,7 +163,8 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
 
   
   //set position4yy
-  actualSteerPos = fastCmdPosSet(steerID, currentSteerPos);
+  fastCmdPosSetNoAck(steerID, currentSteerPos);
+  actualSteerPos = fastCmdPosGet(steerID);
 
   //add the steering to the current direction
   currentBrakePos += msg->brake;
@@ -70,7 +182,8 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
   }
 
   //set position4yy
-  actualBrakePos = fastCmdPosSet(brakeID, currentBrakePos);
+  fastCmdPosSetNoAck(brakeID, currentBrakePos);
+  actualBrakePos = fastCmdPosGet(brakeID);
 
   //add the steering to the current direction
   currentThrottlePos += msg->throttle;
@@ -82,6 +195,74 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
   }
 
   if (currentThrottlePos < throttleStartPos || msg->brake == -1)
+  {
+     currentThrottlePos = throttleStartPos;
+  }
+
+  if (throttleDrive != NULL)
+  {
+     fprintf(throttleDrive,"%lf\n",currentThrottlePos);
+     //read back the value to get the actual position
+     
+     fscanf(throttleDrive, "%lf", &actualThrottlePos);
+  } 
+
+}
+
+//*******************************************
+//
+//joystick callback function
+//
+//*******************************************
+void driveTrainJoyCallBack(const sensor_msgs::JoyConstPtr& msg)
+{
+
+  //add the steering to the current direction
+  currentSteerPos = steerMap.getValue(msg->axes[0]);
+
+  //set position4yy
+  fastCmdPosSetNoAck(steerID, currentSteerPos);
+  actualSteerPos = fastCmdPosGet(steerID);
+  if (actualSteerPos < 0)
+  {
+    actualSteerPos = currentSteerPos;
+  }
+
+  //add the steering to the current direction
+  currentBrakePos = brakeMap.getValue(msg->axes[1]);;
+
+  //check buttons
+  if (msg->buttons[1] == 1 ||  brakeState == -1)
+  {
+     currentBrakePos = brakeFullStop;
+     brakeState = -1;
+  }
+  
+  if (msg->buttons[2] == 1)
+  {
+      currentBrakePos = brakeOff;
+      brakeState = 0;
+  }
+
+  //set position4yy
+  fastCmdPosSetNoAck(brakeID, currentBrakePos);
+  actualBrakePos = fastCmdPosGet(brakeID);
+  if (actualBrakePos < 0)
+  {
+    actualBrakePos = currentBrakePos;
+  }
+
+  //add the steering to the current direction
+  currentThrottlePos = throttleMap.getValue(msg->axes[1]);
+  double maxThrottlePos = maxThrottleMap.getValue(msg->axes[2]);
+
+  //check limits
+  if (currentThrottlePos > maxThrottlePos)
+  {
+     currentThrottlePos = maxThrottlePos;
+  }
+
+  if (brakeState == -1)
   {
      currentThrottlePos = throttleStartPos;
   }
@@ -108,6 +289,7 @@ void driveTrainState(const ros::TimerEvent&)
    //publish the message
    baseState.publish(currBasePos);
 }
+
 
 int main(int argc, char **argv)
 {
@@ -189,7 +371,8 @@ int main(int argc, char **argv)
   fastCmdPosEnable(steerID, steerStartPos);
 
   // set the initial position
-  actualSteerPos = fastCmdPosSet(steerID, currentSteerPos);
+  fastCmdPosSetNoAck(steerID, currentSteerPos);
+  actualSteerPos = fastCmdPosGet(steerID);
 
   //
   //initialize the Jaguar motor controller for brake
@@ -212,8 +395,9 @@ int main(int argc, char **argv)
   fastCmdPosEnable(brakeID, brakeFullStop);
 
   // set the initial position
-  actualBrakePos = fastCmdPosSet(brakeID, currentBrakePos);
-
+  fastCmdPosSetNoAck(brakeID, currentBrakePos);
+  actualBrakePos = fastCmdPosGet(brakeID);
+  brakeState = -1;
   //
   // Open the throttle port
   //
@@ -224,9 +408,15 @@ int main(int argc, char **argv)
      currentThrottlePos = throttleStartPos;
      fprintf(throttleDrive,"%lf\n",currentThrottlePos);
 
-     //read back the value to get the actual position
+     //read back the value to get the actual pOosition
      fscanf(throttleDrive, "%lf", &actualThrottlePos);
   }
+  
+  //setup the mappings for the joystick
+  steerMap.initMap(steerRightStop,steerLeftStop,-1,1,steerStartPos);
+  brakeMap.initMap(brakeFullStop,brakeOff,-1, 0);
+  throttleMap.initMap(throttleStartPos,throttleStopPos,0,1);
+  maxThrottleMap.initMap(throttleStartPos,throttleStopPos,-1,1);
 
   /**
    * The subscribe() call is how you tell ROS that you want to receive messages
@@ -244,6 +434,7 @@ int main(int argc, char **argv)
    * away the oldest ones.
    */
   ros::Subscriber sub = n.subscribe("command_cart", 1, driveTrainCallBack);
+  ros::Subscriber subJoy = n.subscribe("joy", 1, driveTrainJoyCallBack);
 
   // setup the publisher for the state of the cart
   baseState = n.advertise<drive_train::CartDrive>("cart_state",1);

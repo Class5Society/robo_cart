@@ -4,6 +4,7 @@
 
 #include "ros/ros.h"
 #include "drive_train/CartDrive.h"
+#include "sensor_msgs/Joy.h"
 #include <signal.h>
 #include <termios.h>
 #include <stdio.h>
