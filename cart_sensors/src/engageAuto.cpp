@@ -1,20 +1,17 @@
 #include "cart_sensors/cart_sensors.h"
 
-/* code to read the encoder */
-#define POLL_TIMEOUT 1  /*milliseconds*/
+/* code to read the button */
+#define POLL_TIMEOUT 500  /*milliseconds*/
 #define MAX_BUF 1
-#define PULSE_DIST 3.14
-#define NUM_PULSE 12
-#define INCH_PER_FOOT 12.0
 
-std::string encoderPort;
-uint64_t numCounts;
-MUTEX encoderMutex;
+std::string buttonPort;
+uint8_t autoOn = 0;
+MUTEX buttonMutex;
 
 //Setup globals
-ros::Publisher distancePub;
+ros::Publisher autoPub;
 
-void *pollEncoder(void *pvData)
+void *pollButton(void *pvData)
 {
    int status;
    struct pollfd fdset[1];
@@ -27,7 +24,7 @@ void *pollEncoder(void *pvData)
    int closeRet = 0;
  
    // set the edge and directon
-   status = gpio_set_dir(encoderPort, "in");
+   status = gpio_set_dir(buttonPort, "in");
 
    //check stuff
    if (status < 0)
@@ -35,14 +32,14 @@ void *pollEncoder(void *pvData)
      pthread_exit((void *) &errorRet);
    }
 
-   status = gpio_set_edge(encoderPort, "rising");
+   status = gpio_set_edge(buttonPort, "falling");
    if (status < 0)
    {
      pthread_exit((void *) &errorRet);
    }
 
    //open the port
-   gpioPort = gpio_fd_open(encoderPort);
+   gpioPort = gpio_fd_open(buttonPort);
 
    if (gpioPort < 0)
    {
@@ -50,6 +47,7 @@ void *pollEncoder(void *pvData)
    } 
    while (ros::ok())
    { 
+        ROS_INFO("Got here");
       //clear out the memory
       memset((void*) fdset, 0, sizeof(fdset));
 
@@ -66,17 +64,25 @@ void *pollEncoder(void *pvData)
       }
       if (fdset[0].revents & POLLPRI)
       {
+
         //read in the data
         read(fdset[0].fd, &buf, 1);
        
         // lock the mutex
-        MutexLock(&encoderMutex);
+        MutexLock(&buttonMutex);
   
-        // increment the counter
-        numCounts++;
+        // swap the state
+        if (autoOn == 0)
+        {
+           autoOn = 1;
+        }
+        else
+        {
+           autoOn = 0;
+        }
 
         //Unlock the mutex
-        MutexUnlock(&encoderMutex);
+        MutexUnlock(&buttonMutex);
       }
       
    }
@@ -87,56 +93,51 @@ void *pollEncoder(void *pvData)
      
 }
 
-
-void CartDistance(const ros::TimerEvent&)
+void AutoEngage(const ros::TimerEvent&)
 {
-  uint64_t currCounts;
-  double distTrav;
+  uint8_t currButton; 
 
-  //read the current counts
-  MutexLock(&encoderMutex);
-  currCounts = numCounts;
-  MutexUnlock(&encoderMutex);
+  //read the current button
+  MutexLock(&buttonMutex);
+  currButton = autoOn;
+  MutexUnlock(&buttonMutex);
 
-  distTrav = (currCounts * PULSE_DIST)/INCH_PER_FOOT;
-  
   //create a message
-  cart_sensors::Encoder distanceMsg;
-  distanceMsg.distance = distTrav;
-  distanceMsg.numTurns = currCounts/NUM_PULSE;
-  distanceMsg.header.stamp = ros::Time().now();
+  cart_sensors::EngageAuto autoMsg;
+  autoMsg.autoDriveOn = currButton;
+  autoMsg.header.stamp = ros::Time().now();
   
   //Publish the message
-  distancePub.publish(distanceMsg); 
+  autoPub.publish(autoMsg); 
 }
 
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "encoder");
+  ros::init(argc, argv, "engage_auto");
   ros::NodeHandle n;
 
-  n.param<std::string>("encoder_port",encoderPort,"/dev/talos_direct/digio_11");
+  n.param<std::string>("button_port",buttonPort,"/dev/talos_direct/button1");
 
   //
   // Initialize the mutex that restricts access to the COM port.
   //
-  MutexInit(&encoderMutex);
+  MutexInit(&buttonMutex);
 
-  //Initialize the counter
-  numCounts = 0;
+  //Initialize the engage
+  autoOn = 0;
 
   // start the thread
-  OSThreadCreate(pollEncoder);
+  OSThreadCreate(pollButton);
 
   //set the publisher
-  distancePub = n.advertise<cart_sensors::Encoder>("cart_distance",1);
+  autoPub = n.advertise<cart_sensors::EngageAuto>("auto_cart",1,true);
 
   /**
    * Timers allow you to get a callback at a specified rate.  Here we create
    * two timers at different rates as a demonstration.
    */
-  ros::Timer timer1 = n.createTimer(ros::Duration(.003), CartDistance);
+  ros::Timer timer1 = n.createTimer(ros::Duration(.1), AutoEngage);
 
   ros::spin();
 

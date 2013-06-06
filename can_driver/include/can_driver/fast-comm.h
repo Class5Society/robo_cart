@@ -16,7 +16,7 @@ int fastCmdPosP(uint32_t jagId, double inpPValue);
 int fastCmdPosI(uint32_t jagId, double inpIValue);
 int fastCmdPosD(uint32_t jagId, double inpDValue);
 int fastCmdPosRef(uint32_t jagId,int32_t inpValue);
-int fastCmdPosSetNoAck(uint32_t jagId,int32_t inpValue);
+int fastCmdPosSetNoAck(uint32_t jagId, double inpPosValue);
 int fastConfigTurns(uint32_t jagId,int32_t numTurns);
 int fastConfigMaxV(uint32_t jagId, double inpMaxV);
 int fastSystemHalt(void);

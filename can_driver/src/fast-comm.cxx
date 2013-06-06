@@ -262,9 +262,15 @@ int fastCmdPosRef(uint32_t jagId, int32_t inpValue)
 // This command sets the position location without waiting for an ack
 //
 //*****************************************************************************
-int fastCmdPosSetNoAck(uint32_t jagId, int32_t inpValue)
+int fastCmdPosSetNoAck(uint32_t jagId, double inpPosValue)
 {
+        int32_t inpValue;
 	int32_t plValue[2];
+
+        //
+        // Convert the position
+        //
+        inpValue = (int32_t) ((double) POS_SCALE_FACTOR * inpPosValue);
 
 	//
 	// Set Position.

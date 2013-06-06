@@ -3,6 +3,7 @@
 
 #include "ros/ros.h"
 #include "cart_sensors/Encoder.h"
+#include "cart_sensors/EngageAuto.h"
 #include <libgen.h>
 #include <memory.h>
 #include <stdio.h>
@@ -35,5 +36,6 @@
 #endif
 
 #include "cart_sensors/os.h"
+#include "cart_sensors/gpioFunc.h"
 
 #endif

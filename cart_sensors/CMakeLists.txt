@@ -23,6 +23,7 @@ find_package(Threads REQUIRED)
  add_message_files(
    FILES
    Encoder.msg
+   EngageAuto.msg
  )
 
 ## Generate services in the 'srv' folder
@@ -69,14 +70,21 @@ include_directories(include
 # )
 
 ## Declare a cpp executable
-add_executable(encoder_node src/encoder.cpp src/os.cxx)
+add_executable(encoder_node src/encoder.cpp src/os.cxx src/gpioFunc.cpp)
+add_executable(engage_auto_node src/engageAuto.cpp src/os.cxx src/gpioFunc.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 add_dependencies(encoder_node cart_sensors_generate_messages_cpp)
+add_dependencies(engage_auto_node cart_sensors_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(encoder_node
+   ${CMAKE_THREAD_LIBS_INIT}
+   ${catkin_LIBRARIES}
+ )
+
+ target_link_libraries(engage_auto_node
    ${CMAKE_THREAD_LIBS_INIT}
    ${catkin_LIBRARIES}
  )
