@@ -36,6 +36,7 @@ find_package(Threads REQUIRED)
  generate_messages(
    DEPENDENCIES
    std_msgs
+   drive_train
  )
 
 ###################################
@@ -78,8 +79,8 @@ add_executable(teleop_cart_node src/teleop_cart.cpp)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 add_dependencies(drive_train_node drive_train_generate_messages_cpp can_driver)
-add_dependencies(cart_drive_node drive_train_generate_messages_cpp)
 add_dependencies(teleop_cart_node drive_train_generate_messages_cpp)
+add_dependencies(cart_drive_node drive_train_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(drive_train_node
