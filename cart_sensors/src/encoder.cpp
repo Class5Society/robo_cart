@@ -114,7 +114,7 @@ void CartDistance(const ros::TimerEvent&)
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "encoder");
-  ros::NodeHandle n;
+  ros::NodeHandle n("~");
 
   n.param<std::string>("encoder_port",encoderPort,"/dev/talos_direct/digio_11");
 

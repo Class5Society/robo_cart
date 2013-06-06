@@ -45,9 +45,9 @@ void *pollButton(void *pvData)
    {
      pthread_exit((void *) &errorRet);
    } 
+
    while (ros::ok())
    { 
-        ROS_INFO("Got here");
       //clear out the memory
       memset((void*) fdset, 0, sizeof(fdset));
 
@@ -72,13 +72,16 @@ void *pollButton(void *pvData)
         MutexLock(&buttonMutex);
   
         // swap the state
-        if (autoOn == 0)
+        if (buf != '1')
         {
-           autoOn = 1;
-        }
-        else
-        {
-           autoOn = 0;
+          if (autoOn == 0)
+          {
+             autoOn = 1;
+          }
+          else
+          {
+             autoOn = 0;
+          }
         }
 
         //Unlock the mutex
@@ -115,7 +118,7 @@ void AutoEngage(const ros::TimerEvent&)
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "engage_auto");
-  ros::NodeHandle n;
+  ros::NodeHandle n("~");
 
   n.param<std::string>("button_port",buttonPort,"/dev/talos_direct/button1");
 
@@ -131,7 +134,7 @@ int main(int argc, char **argv)
   OSThreadCreate(pollButton);
 
   //set the publisher
-  autoPub = n.advertise<cart_sensors::EngageAuto>("auto_cart",1,true);
+  autoPub = n.advertise<cart_sensors::EngageAuto>("auto_cart",1);
 
   /**
    * Timers allow you to get a callback at a specified rate.  Here we create
