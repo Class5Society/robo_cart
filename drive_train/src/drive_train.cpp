@@ -163,7 +163,7 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
 
   
   //set position4yy
-  fastCmdPosSetNoAck(steerID, currentSteerPos);
+  fastCmdPosSet(steerID, currentSteerPos);
   actualSteerPos = fastCmdPosGet(steerID);
 
   //add the steering to the current direction
@@ -182,7 +182,7 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
   }
 
   //set position4yy
-  fastCmdPosSetNoAck(brakeID, currentBrakePos);
+  fastCmdPosSet(brakeID, currentBrakePos);
   actualBrakePos = fastCmdPosGet(brakeID);
 
   //add the steering to the current direction
@@ -221,7 +221,7 @@ void driveTrainJoyCallBack(const sensor_msgs::JoyConstPtr& msg)
   currentSteerPos = steerMap.getValue(msg->axes[0]);
 
   //set position4yy
-  fastCmdPosSetNoAck(steerID, currentSteerPos);
+  fastCmdPosSet(steerID, currentSteerPos);
   actualSteerPos = fastCmdPosGet(steerID);
   if (actualSteerPos < 0)
   {
@@ -245,7 +245,7 @@ void driveTrainJoyCallBack(const sensor_msgs::JoyConstPtr& msg)
   }
 
   //set position4yy
-  fastCmdPosSetNoAck(brakeID, currentBrakePos);
+  fastCmdPosSet(brakeID, currentBrakePos);
   actualBrakePos = fastCmdPosGet(brakeID);
   if (actualBrakePos < 0)
   {
@@ -371,7 +371,7 @@ int main(int argc, char **argv)
   fastCmdPosEnable(steerID, steerStartPos);
 
   // set the initial position
-  fastCmdPosSetNoAck(steerID, currentSteerPos);
+  fastCmdPosSet(steerID, currentSteerPos);
   actualSteerPos = fastCmdPosGet(steerID);
 
   //
@@ -395,7 +395,7 @@ int main(int argc, char **argv)
   fastCmdPosEnable(brakeID, brakeFullStop);
 
   // set the initial position
-  fastCmdPosSetNoAck(brakeID, currentBrakePos);
+  fastCmdPosSet(brakeID, currentBrakePos);
   actualBrakePos = fastCmdPosGet(brakeID);
   brakeState = -1;
   //
