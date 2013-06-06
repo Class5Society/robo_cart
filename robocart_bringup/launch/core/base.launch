@@ -1,0 +1,6 @@
+<launch>
+    <!-- BASE -->
+    <include file="$(find drive_train)/launch/drive_train.launch">
+    </include>
+</launch>
+

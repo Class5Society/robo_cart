@@ -1,0 +1,6 @@
+<launch>
+    <!-- Sensors -->
+    <include file="$(find cart_sensors)/launch/cart_sensors.launch">
+    </include>
+</launch>
+
