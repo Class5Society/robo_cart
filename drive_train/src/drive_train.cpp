@@ -210,18 +210,19 @@ int main(int argc, char **argv)
    * NodeHandle destructed will close down the node.
    */
   ros::NodeHandle n;
+  ros::NodeHandle np_param("~");
 
   /* Get the parameters needed */
-  n.param<std::string>("can_comm_port",g_canCommPort,"/dev/ttyUSB0");
-  n.param<std::string>("throttle_comm_port",g_throttleCommPort,"/dev/talos/servo1/position");
-  n.param("steer_P_val",steerPVal,150.0);
-  n.param("steer_I_val",steerIVal,0.01);
-  n.param("steer_D_val",steerDVal,0.01);
-  n.param("brake_P_val",brakePVal,150.0);
-  n.param("brake_I_val",brakeIVal,0.01);
-  n.param("brake_D_val",brakeDVal,0.01);
-  n.param("can_steer_id",steerID,1);
-  n.param("can_brake_id",brakeID,2);
+  np_param.param<std::string>("can_comm_port",g_canCommPort,"/dev/ttyUSB0");
+  np_param.param<std::string>("throttle_comm_port",g_throttleCommPort,"/dev/talos/servo1/position");
+  np_param.param("steer_P_val",steerPVal,150.0);
+  np_param.param("steer_I_val",steerIVal,0.01);
+  np_param.param("steer_D_val",steerDVal,0.01);
+  np_param.param("brake_P_val",brakePVal,150.0);
+  np_param.param("brake_I_val",brakeIVal,0.01);
+  np_param.param("brake_D_val",brakeDVal,0.01);
+  np_param.param("can_steer_id",steerID,1);
+  np_param.param("can_brake_id",brakeID,2);
 
   n.param("steer_start_pos",steerStartPos,POS_START_REF);
   n.param("steer_left_stop",steerLeftStop,POS_LEFT_STOP);

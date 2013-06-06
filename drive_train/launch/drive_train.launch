@@ -2,22 +2,25 @@
    <param name="steering_increment" value="0.1" />
    <param name="throttle_increment" value="1" />
    <param name="brake_increment" value="1" />
-   <param name="can_comm_port" value="/dev/ttyUSB0"/>
-   <param name="can_steer_id" value="1"/>
-   <param name="can_brake_id" value="2"/>
-   <param name="throttle_comm_port" value="/dev/talos/servo2/position" />
    <param name="throttle_start" value="92" />
    <param name="throttle_stop" value="130" />
    <param name="steer_start_pos" value="4.7" />
    <param name="steer_left_stop" value="7.7" />
    <param name="steer_right_stop" value="1.5" />
-   <param name="steer_P_val" value="150.0" />
-   <param name="steer_I_val" value="0.01" />
-   <param name="steer_D_val" value="0.01" />
    <param name="brake_full_stop" value="0.0" />
    <param name="brake_off" value="4.0" />
-   <param name="brake_P_val" value="150.0" />
-   <param name="brake_I_val" value="0.01" />
-   <param name="brake_D_val" value="0.01" />
-      <node pkg="drive_train" type="drive_train_node" name="cart_base"/>
+      <node pkg="drive_train" type="drive_train_node" name="cart_base">
+          <param name="throttle_comm_port" value="/dev/talos/servo2/position" />
+          <param name="can_comm_port" value="/dev/ttyUSB0"/>
+          <param name="can_steer_id" value="1"/>
+          <param name="can_brake_id" value="2"/>
+          <param name="steer_P_val" value="150.0" />
+          <param name="steer_I_val" value="0.01" />
+          <param name="steer_D_val" value="0.01" />
+          <param name="brake_P_val" value="150.0" />
+          <param name="brake_I_val" value="0.01" />
+          <param name="brake_D_val" value="0.01" />
+      </node>
+      <node pkg="drive_train" type="cart_drive_node" name="auto_cart_drive">
+      </node>
 </launch>
