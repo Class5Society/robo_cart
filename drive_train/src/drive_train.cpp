@@ -35,104 +35,6 @@ double actualThrottlePos;
 //setup globals
 ros::Publisher baseState;
 
-
-//create mapping class
-class mapLinearMoves
-{
-public:
-  mapLinearMoves();
-  void initMap(double actualMinVal, double actualMaxVal, double inpMinVal, double inpMaxVal);
-  void initMap(double actualMinVal, double actualMaxVal, double inpMinVal, double inpMaxVal, double inpMidVal);
-  double getValue(double inpVal);
-private:
-   double aMinVal;
-   double aMaxVal;
-   double slope;
-   double intercept;
-   double aMidVal;
-   double iMinVal;
-   double iMaxVal;
-   double iMidVal;
-};
-
-mapLinearMoves::mapLinearMoves()
-{
-   aMinVal = 0;
-   aMaxVal = 0;
-   slope = 0;
-   intercept = 0;
-   aMidVal = 0;
-   iMinVal = 0;
-   iMaxVal = 0;
-   iMidVal = 0;
-}
-
-void mapLinearMoves::initMap(double actualMinVal, double actualMaxVal, double inpMinVal, double inpMaxVal)
-{
-    //compute the intercept and slope
-    slope = (actualMaxVal - actualMinVal) / (inpMaxVal - inpMinVal);
-    intercept = actualMaxVal - (slope*inpMaxVal);
-     
-    //set the values
-    aMinVal = actualMinVal;
-    aMaxVal = actualMaxVal;
-    iMinVal = inpMinVal;
-    iMaxVal = inpMaxVal;
-    iMidVal = (inpMaxVal + inpMinVal)/2;
-    aMidVal = intercept; 
-}
-
-void mapLinearMoves::initMap(double actualMinVal, double actualMaxVal, 
-                               double inpMinVal, double inpMaxVal, 
-                               double inpMidVal)
-{
-    //compute the intercept and slope
-    slope = (actualMaxVal - actualMinVal) / (inpMaxVal - inpMinVal);
-    intercept = actualMaxVal - (slope*inpMaxVal);
-     
-    //set the values
-    aMinVal = actualMinVal;
-    aMaxVal = actualMaxVal;
-    iMinVal = inpMinVal;
-    iMaxVal = inpMaxVal;
-    iMidVal = (inpMaxVal + inpMinVal)/2;
-    aMidVal = inpMidVal; 
-}
-
-double mapLinearMoves::getValue(double inpVal)
-{
-     //create the value
-     double currValue = aMinVal;
-
-     //compute the current value
-     currValue = slope*inpVal + intercept;
-
-     //check the bounds
-     if (currValue < aMinVal)
-     {
-         //set it to the minium
-         currValue = aMinVal;
-     }
-
-     if (currValue > aMaxVal)
-     {
-         //set it to the maximum
-         currValue = aMaxVal;
-     }
-
-     //check to see if it is in the middle
-     if (inpVal == iMidVal)
-     {
-         currValue = aMidVal;
-     }
-
-     //return the value
-     return(currValue);
-}
-
-
-
-
 // create global maps
 mapLinearMoves steerMap;
 mapLinearMoves brakeMap;
@@ -142,59 +44,34 @@ mapLinearMoves maxThrottleMap;
 
 //*******************************************
 //
-//keyboard callback function
+//auto callback function
 //
 //*******************************************
-void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
+void driveTrainAutoCallBack(const drive_train::CartDriveConstPtr& msg)
 {
-  //add the steering to the current direction
-  currentSteerPos += msg->steering;
 
-  //check limits
-  if (currentSteerPos > steerLeftStop)
-     {
-     currentSteerPos = steerLeftStop;
-      }
+  //get steering to the current direction
+  currentSteerPos = msg->steering;
 
-  if (currentSteerPos < steerRightStop)
-     {
-     currentSteerPos = steerRightStop;
-     }
-
-  
-  //set position4yy
+  //set position
   fastCmdPosSet(steerID, currentSteerPos);
   actualSteerPos = fastCmdPosGet(steerID);
+  if (actualSteerPos < 0)
+  {
+    actualSteerPos = currentSteerPos;
+  }
 
-  //add the steering to the current direction
-  currentBrakePos += msg->brake;
+  //set the throttle
+  currentThrottlePos = msg->throttle;
+  double maxThrottlePos = msg->maxThrottle;
 
   //check limits
-
-  if (msg->brake == -1)
+  if (currentThrottlePos > maxThrottlePos)
   {
-     currentBrakePos = brakeFullStop;
+     currentThrottlePos = maxThrottlePos;
   }
 
-  if (msg->brake == 1)
-  {
-     currentBrakePos = brakeOff;
-  }
-
-  //set position4yy
-  fastCmdPosSet(brakeID, currentBrakePos);
-  actualBrakePos = fastCmdPosGet(brakeID);
-
-  //add the steering to the current direction
-  currentThrottlePos += msg->throttle;
-
-  //check limits
-  if (currentThrottlePos > throttleStopPos)
-  {
-     currentThrottlePos = throttleStopPos;
-  }
-
-  if (currentThrottlePos < throttleStartPos || msg->brake == -1)
+  if (msg->fullBrakeEnable || brakeState == -1)
   {
      currentThrottlePos = throttleStartPos;
   }
@@ -206,13 +83,35 @@ void driveTrainCallBack(const drive_train::CartDriveConstPtr& msg)
      
      fscanf(throttleDrive, "%lf", &actualThrottlePos);
   } 
+  //get the brake current position
+  currentBrakePos = msg->brake;
+
+  //check buttons
+  if (msg->fullBrakeEnable || brakeState == -1)
+  {
+     currentBrakePos = brakeFullStop;
+     brakeState = -1;
+  }
+  else
+  {
+      currentBrakePos = brakeOff;
+      brakeState = 0;
+  }
+
+  //set position
+  fastCmdPosSet(brakeID, currentBrakePos);
+  actualBrakePos = fastCmdPosGet(brakeID);
+  if (actualBrakePos < 0)
+  {
+    actualBrakePos = currentBrakePos;
+  }
 
 }
 
 //*******************************************
 //
 //joystick callback function
-//
+////
 //*******************************************
 void driveTrainJoyCallBack(const sensor_msgs::JoyConstPtr& msg)
 {
@@ -315,20 +214,21 @@ int main(int argc, char **argv)
   /* Get the parameters needed */
   n.param<std::string>("can_comm_port",g_canCommPort,"/dev/ttyUSB0");
   n.param<std::string>("throttle_comm_port",g_throttleCommPort,"/dev/talos/servo1/position");
-  n.param("can_steer_id",steerID,1);
-  n.param("can_brake_id",brakeID,2);
-  n.param("steer_start_pos",steerStartPos,POS_START_REF);
-  n.param("steer_left_stop",steerLeftStop,POS_LEFT_STOP);
-  n.param("steer_right_stop",steerRightStop,POS_RIGHT_STOP);
   n.param("steer_P_val",steerPVal,150.0);
   n.param("steer_I_val",steerIVal,0.01);
   n.param("steer_D_val",steerDVal,0.01);
-
-  n.param("brake_full_stop",brakeFullStop,0.0);
-  n.param("brake_off",brakeOff,5.0);
   n.param("brake_P_val",brakePVal,150.0);
   n.param("brake_I_val",brakeIVal,0.01);
   n.param("brake_D_val",brakeDVal,0.01);
+  n.param("can_steer_id",steerID,1);
+  n.param("can_brake_id",brakeID,2);
+
+  n.param("steer_start_pos",steerStartPos,POS_START_REF);
+  n.param("steer_left_stop",steerLeftStop,POS_LEFT_STOP);
+  n.param("steer_right_stop",steerRightStop,POS_RIGHT_STOP);
+
+  n.param("brake_full_stop",brakeFullStop,0.0);
+  n.param("brake_off",brakeOff,5.0);
   n.param("throttle_start",throttleStartPos,MIN_THROT_POS);
   n.param("throttle_stop",throttleStopPos,MAX_THROT_POS);
   //
@@ -433,7 +333,7 @@ int main(int argc, char **argv)
    * is the number of messages that will be buffered up before beginning to throw
    * away the oldest ones.
    */
-  ros::Subscriber sub = n.subscribe("command_cart", 1, driveTrainCallBack);
+  ros::Subscriber sub = n.subscribe("command_cart", 1, driveTrainAutoCallBack);
   ros::Subscriber subJoy = n.subscribe("joy", 1, driveTrainJoyCallBack);
 
   // setup the publisher for the state of the cart

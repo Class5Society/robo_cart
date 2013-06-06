@@ -5,6 +5,9 @@
 #include "ros/ros.h"
 #include "drive_train/CartDrive.h"
 #include "sensor_msgs/Joy.h"
+#include "cart_sensors/EngageAuto.h"
+#include "cart_sensors/Encoder.h"
+#include "map_lin_moves.h"
 #include <signal.h>
 #include <termios.h>
 #include <stdio.h>

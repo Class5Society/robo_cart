@@ -71,12 +71,15 @@ include_directories(include
 # )
 
 ## Declare a cpp executable
-add_executable(drive_train_node src/drive_train.cpp)
+add_executable(drive_train_node src/drive_train.cpp src/map_lin_moves.cpp)
+add_executable(cart_drive_node src/cart_drive.cpp src/map_lin_moves.cpp)
 add_executable(teleop_cart_node src/teleop_cart.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 add_dependencies(drive_train_node drive_train_generate_messages_cpp can_driver)
+add_dependencies(cart_drive_node drive_train_generate_messages_cpp)
+add_dependencies(teleop_cart_node drive_train_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(drive_train_node
@@ -85,6 +88,9 @@ add_dependencies(drive_train_node drive_train_generate_messages_cpp can_driver)
    ${catkin_LIBRARIES}
  )
  target_link_libraries(teleop_cart_node
+   ${catkin_LIBRARIES}
+ )
+ target_link_libraries(cart_drive_node
    ${catkin_LIBRARIES}
  )
 
