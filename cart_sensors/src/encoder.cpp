@@ -114,9 +114,10 @@ void CartDistance(const ros::TimerEvent&)
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "encoder");
-  ros::NodeHandle n("~");
+  ros::NodeHandle n;
+  ros::NodeHandle n_param("~");
 
-  n.param<std::string>("encoder_port",encoderPort,"/dev/talos_direct/digio_11");
+  n_param.param<std::string>("encoder_port",encoderPort,"/dev/talos_direct/digio_11");
 
   //
   // Initialize the mutex that restricts access to the COM port.

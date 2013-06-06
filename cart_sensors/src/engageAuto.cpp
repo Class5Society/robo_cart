@@ -118,9 +118,10 @@ void AutoEngage(const ros::TimerEvent&)
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "engage_auto");
-  ros::NodeHandle n("~");
+  ros::NodeHandle n;
+  ros::NodeHandle n_param("~");
 
-  n.param<std::string>("button_port",buttonPort,"/dev/talos_direct/button1");
+  n_param.param<std::string>("button_port",buttonPort,"/dev/talos_direct/button1");
 
   //
   // Initialize the mutex that restricts access to the COM port.
