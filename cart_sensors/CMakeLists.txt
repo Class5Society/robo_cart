@@ -75,8 +75,8 @@ add_executable(engage_auto_node src/engageAuto.cpp src/os.cxx src/gpioFunc.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-add_dependencies(encoder_node cart_sensors_generate_messages_cpp)
-add_dependencies(engage_auto_node cart_sensors_generate_messages_cpp)
+add_dependencies(encoder_node ${PROJECT_NAME}_gencpp)
+add_dependencies(engage_auto_node ${PROJECT_NAME}_gencpp)
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(encoder_node

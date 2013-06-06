@@ -78,9 +78,9 @@ add_executable(teleop_cart_node src/teleop_cart.cpp)
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-add_dependencies(drive_train_node drive_train_generate_messages_cpp can_driver)
-add_dependencies(teleop_cart_node drive_train_generate_messages_cpp)
-add_dependencies(cart_drive_node drive_train_generate_messages_cpp)
+add_dependencies(drive_train_node ${PROJECT_NAME}_gencpp cart_sensors_gencpp can_driver)
+add_dependencies(teleop_cart_node ${PROJECT_NAME}_gencpp )
+add_dependencies(cart_drive_node ${PROJECT_NAME}_gencpp cart_sensors_gencpp)
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(drive_train_node
