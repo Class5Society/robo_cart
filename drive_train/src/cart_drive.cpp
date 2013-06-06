@@ -20,13 +20,106 @@
      double maxThrottlePos;
      double brakeFullStop;
      double brakeOff;
+     double startCartPos;
+     uint32_t currGoal = 0;
  
      //outputs to command 
      double currentSteerPos;
      double currentThrottlePos;
      double currentBrakePos;
      bool fullBrakeEnable;
+     bool firstTimeAuto;
+     
 
+#define NUMPOINTS 6
+#define NUMSTEPS 8
+#define STEERPOS 0
+#define BRAKEPOS 1
+#define THROTTLEPOS 2
+#define MAXTHROTTLEPOS 3
+#define BRAKEENABLEPOS 4
+#define DISTGOALPOS 5
+
+
+                                      // steer brake throttle maxThrottle brakeEnable distGoal 
+double goalMap[NUMSTEPS][NUMPOINTS] = { 
+                                        {0, 0, 1, 0, 0, 20}, //straight
+                                        {1, 0, 1, 0, 0, 2}, //turn
+                                        {0, 0, 1, 0, 0, 10}, //straight
+                                        {1, 0, 1, 0, 0, 2}, //turn
+                                        {0, 0, 1, 0, 0, 20}, //straight
+                                        {1, 0, 1, 0, 0, 2}, //turn
+                                        {0, 0, 1, 0, 0, 10}, //straight
+                                        {0, 0, 0, 0, 1, 0}, //stop
+                                     };
+
+void cartAutoDriveCallBack(const cart_sensors::EncoderConstPtr& msg)
+{
+//*******************************************
+//
+//auto callback function
+//
+//*******************************************
+
+  if (autoEnable == true && startAutoRun == true)
+  {
+     //get the offset
+     if (firstTimeAuto == true)
+     {
+        startCartPos = msg->distance;
+        currGoal = 0;
+        firstTimeAuto = false;
+     }
+     
+     //check the goal
+     double goalPos = msg->distance - startCartPos;
+     if (goalPos >= goalMap[currGoal][DISTGOALPOS] && currGoal < NUMSTEPS-1)
+     {
+        currGoal++;
+        startCartPos = msg->distance;
+     }
+
+     //generate the steering 
+     currentSteerPos = steerMap.getValue(goalMap[currGoal][STEERPOS]);
+
+     //generate the brake 
+     currentBrakePos = brakeMap.getValue(goalMap[currGoal][BRAKEPOS]);
+
+     //check buttons
+     if (goalMap[currGoal][BRAKEENABLEPOS] == 1 ||  fullBrakeEnable)
+     {
+        currentBrakePos = brakeFullStop;
+        fullBrakeEnable = true;
+     }
+  
+     if (goalMap[currGoal][BRAKEENABLEPOS] == 0 )
+     {
+        currentBrakePos = brakeOff;
+        fullBrakeEnable = false;
+     }
+
+     //generate the throttle
+     currentThrottlePos = throttleMap.getValue(goalMap[currGoal][THROTTLEPOS]);
+     maxThrottlePos = maxThrottleMap.getValue(goalMap[currGoal][MAXTHROTTLEPOS]);
+
+     //check limits
+     if (currentThrottlePos > maxThrottlePos)
+     {
+        currentThrottlePos = maxThrottlePos;
+     }
+
+     if (fullBrakeEnable)
+     {
+        currentThrottlePos = throttleStartPos;
+     }
+  }
+  else if (autoEnable == true && startAutoRun == false)
+  {
+     currentBrakePos = brakeFullStop;
+     fullBrakeEnable = true;
+     currentThrottlePos = throttleStartPos;
+  }
+}
 
 void cartJoyCallBack(const sensor_msgs::JoyConstPtr& msg)
 {
@@ -82,6 +175,7 @@ void cartJoyCallBack(const sensor_msgs::JoyConstPtr& msg)
      if (msg->buttons[2] == 1)
      {
         startAutoRun = false;
+        firstTimeAuto = true;
      }
   }
 }
@@ -152,9 +246,11 @@ int main(int argc, char **argv)
   currentSteerPos = steerStartPos;
   currentBrakePos = brakeFullStop;
   currentThrottlePos = throttleStartPos;
+  maxThrottlePos = throttleStartPos;
   fullBrakeEnable = true;
   autoEnable = false;
   startAutoRun = false;
+  firstTimeAuto = false;
 
   //create the joystick subscriber
   ros::Subscriber subJoy = nh.subscribe("joy", 1, cartJoyCallBack);
@@ -162,11 +258,14 @@ int main(int argc, char **argv)
   //create the button subscriber
   ros::Subscriber subButton = nh.subscribe("auto_cart", 1, autoButtonCallBack);
 
+  //create the encoder subscriber
+  ros::Subscriber subEncoder = nh.subscribe("cart_distance", 1, cartAutoDriveCallBack);
+
   // setup the publisher for commanding of the cart
   commandCart= nh.advertise<drive_train::CartDrive>("command_cart",1);
 
   //setup the timer to fire out the command to the cart 
-  ros::Timer pubTimer = nh.createTimer(ros::Duration(.05), autoCartDriveCallBack);
+  ros::Timer pubTimer = nh.createTimer(ros::Duration(.01), autoCartDriveCallBack);
 
   ros::spin();
 

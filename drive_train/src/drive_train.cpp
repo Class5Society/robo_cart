@@ -18,8 +18,9 @@ FILE *throttleDrive;
 
 double throttleStartPos;
 double throttleStopPos;
+double maxThrottlePos;
 
-static int32_t brakeState = 0;
+bool brakeState = true;
 double currentBrakePos;
 double brakeFullStop;
 double brakeOff;
@@ -54,16 +55,11 @@ void driveTrainAutoCallBack(const drive_train::CartDriveConstPtr& msg)
   currentSteerPos = msg->steering;
 
   //set position
-  fastCmdPosSet(steerID, currentSteerPos);
-  actualSteerPos = fastCmdPosGet(steerID);
-  if (actualSteerPos < 0)
-  {
-    actualSteerPos = currentSteerPos;
-  }
+  fastCmdPosSetNoAck(steerID, currentSteerPos);
 
   //set the throttle
   currentThrottlePos = msg->throttle;
-  double maxThrottlePos = msg->maxThrottle;
+  maxThrottlePos = msg->maxThrottle;
 
   //check limits
   if (currentThrottlePos > maxThrottlePos)
@@ -71,7 +67,7 @@ void driveTrainAutoCallBack(const drive_train::CartDriveConstPtr& msg)
      currentThrottlePos = maxThrottlePos;
   }
 
-  if (msg->fullBrakeEnable || brakeState == -1)
+  if (msg->fullBrakeEnable == true || brakeState == true)
   {
      currentThrottlePos = throttleStartPos;
   }
@@ -79,32 +75,25 @@ void driveTrainAutoCallBack(const drive_train::CartDriveConstPtr& msg)
   if (throttleDrive != NULL)
   {
      fprintf(throttleDrive,"%lf\n",currentThrottlePos);
-     //read back the value to get the actual position
-     
-     fscanf(throttleDrive, "%lf", &actualThrottlePos);
   } 
   //get the brake current position
   currentBrakePos = msg->brake;
 
   //check buttons
-  if (msg->fullBrakeEnable || brakeState == -1)
+  if (msg->fullBrakeEnable == true || brakeState ==true ) 
   {
      currentBrakePos = brakeFullStop;
-     brakeState = -1;
+     brakeState = true;
   }
-  else
+  
+  if (msg->fullBrakeEnable == false)
   {
       currentBrakePos = brakeOff;
-      brakeState = 0;
+      brakeState = false;
   }
 
   //set position
-  fastCmdPosSet(brakeID, currentBrakePos);
-  actualBrakePos = fastCmdPosGet(brakeID);
-  if (actualBrakePos < 0)
-  {
-    actualBrakePos = currentBrakePos;
-  }
+  fastCmdPosSetNoAck(brakeID, currentBrakePos);
 
 }
 
@@ -120,40 +109,30 @@ void driveTrainJoyCallBack(const sensor_msgs::JoyConstPtr& msg)
   currentSteerPos = steerMap.getValue(msg->axes[0]);
 
   //set position4yy
-  fastCmdPosSet(steerID, currentSteerPos);
-  actualSteerPos = fastCmdPosGet(steerID);
-  if (actualSteerPos < 0)
-  {
-    actualSteerPos = currentSteerPos;
-  }
+  fastCmdPosSetNoAck(steerID, currentSteerPos);
 
   //add the steering to the current direction
   currentBrakePos = brakeMap.getValue(msg->axes[1]);;
 
   //check buttons
-  if (msg->buttons[1] == 1 ||  brakeState == -1)
+  if (msg->buttons[1] == 1 ||  brakeState == true)
   {
      currentBrakePos = brakeFullStop;
-     brakeState = -1;
+     brakeState = true;
   }
   
   if (msg->buttons[2] == 1)
   {
       currentBrakePos = brakeOff;
-      brakeState = 0;
+      brakeState = false;
   }
 
   //set position4yy
-  fastCmdPosSet(brakeID, currentBrakePos);
-  actualBrakePos = fastCmdPosGet(brakeID);
-  if (actualBrakePos < 0)
-  {
-    actualBrakePos = currentBrakePos;
-  }
+  fastCmdPosSetNoAck(brakeID, currentBrakePos);
 
   //add the steering to the current direction
   currentThrottlePos = throttleMap.getValue(msg->axes[1]);
-  double maxThrottlePos = maxThrottleMap.getValue(msg->axes[2]);
+  maxThrottlePos = maxThrottleMap.getValue(msg->axes[2]);
 
   //check limits
   if (currentThrottlePos > maxThrottlePos)
@@ -161,7 +140,7 @@ void driveTrainJoyCallBack(const sensor_msgs::JoyConstPtr& msg)
      currentThrottlePos = maxThrottlePos;
   }
 
-  if (brakeState == -1)
+  if (brakeState == true)
   {
      currentThrottlePos = throttleStartPos;
   }
@@ -169,20 +148,37 @@ void driveTrainJoyCallBack(const sensor_msgs::JoyConstPtr& msg)
   if (throttleDrive != NULL)
   {
      fprintf(throttleDrive,"%lf\n",currentThrottlePos);
-     //read back the value to get the actual position
-     
-     fscanf(throttleDrive, "%lf", &actualThrottlePos);
   } 
 
 }
 
 void driveTrainState(const ros::TimerEvent&)
 {
+  actualSteerPos = fastCmdPosGet(steerID);
+  if (actualSteerPos < 0)
+  {
+    actualSteerPos = currentSteerPos;
+  }
+
+  actualBrakePos = fastCmdPosGet(brakeID);
+  if (actualBrakePos < 0)
+  {
+    actualBrakePos = currentBrakePos;
+  }
+
+  if (throttleDrive != NULL)
+  {
+     //read back the value to get the actual position
+     fscanf(throttleDrive, "%lf", &actualThrottlePos);
+  } 
+
    //create message
    drive_train::CartDrive currBasePos;
    currBasePos.steering = actualSteerPos;
    currBasePos.brake = actualBrakePos;
    currBasePos.throttle = actualThrottlePos;
+   currBasePos.fullBrakeEnable = brakeState;
+   currBasePos.maxThrottle = maxThrottlePos;
    currBasePos.header.stamp = ros::Time().now();
    
    //publish the message
@@ -272,7 +268,7 @@ int main(int argc, char **argv)
   fastCmdPosEnable(steerID, steerStartPos);
 
   // set the initial position
-  fastCmdPosSet(steerID, currentSteerPos);
+  fastCmdPosSetNoAck(steerID, currentSteerPos);
   actualSteerPos = fastCmdPosGet(steerID);
 
   //
@@ -296,9 +292,9 @@ int main(int argc, char **argv)
   fastCmdPosEnable(brakeID, brakeFullStop);
 
   // set the initial position
-  fastCmdPosSet(brakeID, currentBrakePos);
+  fastCmdPosSetNoAck(brakeID, currentBrakePos);
   actualBrakePos = fastCmdPosGet(brakeID);
-  brakeState = -1;
+  brakeState = true;
   //
   // Open the throttle port
   //
@@ -335,13 +331,13 @@ int main(int argc, char **argv)
    * away the oldest ones.
    */
   ros::Subscriber sub = n.subscribe("command_cart", 1, driveTrainAutoCallBack);
-  ros::Subscriber subJoy = n.subscribe("joy", 1, driveTrainJoyCallBack);
+  //ros::Subscriber subJoy = n.subscribe("joy", 1, driveTrainJoyCallBack);
 
   // setup the publisher for the state of the cart
-  baseState = n.advertise<drive_train::CartDrive>("cart_state",1);
+  baseState = n.advertise<drive_train::CartDrive>("cart_state",10);
 
   //setup the timer to fire out the publisher
-  ros::Timer pubTimer = n.createTimer(ros::Duration(.01), driveTrainState);
+  ros::Timer pubTimer = n.createTimer(ros::Duration(.02), driveTrainState);
    
   /**
    * ros::spin() will enter a loop, pumping callbacks.  With this version, all
