@@ -67,7 +67,7 @@ void driveTrainAutoCallBack(const drive_train::CartDriveConstPtr& msg)
      currentThrottlePos = maxThrottlePos;
   }
 
-  if (msg->fullBrakeEnable == true || brakeState == true)
+  if (msg->fullBrakeEnable == true )
   {
      currentThrottlePos = throttleStartPos;
   }
@@ -80,17 +80,11 @@ void driveTrainAutoCallBack(const drive_train::CartDriveConstPtr& msg)
   currentBrakePos = msg->brake;
 
   //check buttons
-  if (msg->fullBrakeEnable == true || brakeState ==true ) 
+  if (msg->fullBrakeEnable == true)  
   {
      currentBrakePos = brakeFullStop;
-     brakeState = true;
   }
   
-  if (msg->fullBrakeEnable == false)
-  {
-      brakeState = false;
-  }
-
   //set position
   fastCmdPosSetNoAck(brakeID, currentBrakePos);
 
