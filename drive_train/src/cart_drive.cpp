@@ -44,12 +44,12 @@
                                       // steer brake throttle maxThrottle brakeEnable distGoal 
 double goalMap[NUMSTEPS][NUMPOINTS] = { 
                                         {0, 0, 1, 0, 0, 20}, //straight
-                                        {1, 0, 1, 0, 0, 2}, //turn
-                                        {0, 0, 1, 0, 0, 10}, //straight
-                                        {1, 0, 1, 0, 0, 2}, //turn
+                                        {1, 0, 1, 0, 0, 10}, //turn
                                         {0, 0, 1, 0, 0, 20}, //straight
-                                        {1, 0, 1, 0, 0, 2}, //turn
-                                        {0, 0, 1, 0, 0, 10}, //straight
+                                        {1, 0, 1, 0, 0, 10}, //turn
+                                        {0, 0, 1, 0, 0, 20}, //straight
+                                        {1, 0, 1, 0, 0, 10}, //turn
+                                        {0, 0, 1, 0, 0, 20}, //straight
                                         {0, 0, 0, 0, 1, 0}, //stop
                                      };
 

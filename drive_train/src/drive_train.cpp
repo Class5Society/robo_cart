@@ -78,6 +78,7 @@ void driveTrainAutoCallBack(const drive_train::CartDriveConstPtr& msg)
   } 
   //get the brake current position
   currentBrakePos = msg->brake;
+  ROS_INFO("brakePOs %lf",currentBrakePos);
 
   //check buttons
   if (msg->fullBrakeEnable == true || brakeState ==true ) 
@@ -88,7 +89,6 @@ void driveTrainAutoCallBack(const drive_train::CartDriveConstPtr& msg)
   
   if (msg->fullBrakeEnable == false)
   {
-      currentBrakePos = brakeOff;
       brakeState = false;
   }
 
