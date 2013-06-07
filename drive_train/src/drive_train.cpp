@@ -95,7 +95,7 @@ void driveTrainAutoCallBack(const drive_train::CartDriveConstPtr& msg)
   }
 
   //set position
-  fastCmdPosSetNoAck(brakeID, currentBrakePos);
+  //fastCmdPosSetNoAck(brakeID, currentBrakePos);
 
 }
 
@@ -162,11 +162,11 @@ void driveTrainState(const ros::TimerEvent&)
     actualSteerPos = currentSteerPos;
   }
 
-  actualBrakePos = fastCmdPosGet(brakeID);
-  if (actualBrakePos < 0)
-  {
-    actualBrakePos = currentBrakePos;
-  }
+  //actualBrakePos = fastCmdPosGet(brakeID);
+  //if (actualBrakePos < 0)
+  //{
+   // actualBrakePos = currentBrakePos;
+  //}
 
   if (throttleDrive != NULL)
   {
@@ -273,6 +273,7 @@ int main(int argc, char **argv)
   fastCmdPosSetNoAck(steerID, currentSteerPos);
   actualSteerPos = fastCmdPosGet(steerID);
 
+/*
   //
   //initialize the Jaguar motor controller for brake
   //
@@ -296,6 +297,7 @@ int main(int argc, char **argv)
   // set the initial position
   fastCmdPosSetNoAck(brakeID, currentBrakePos);
   actualBrakePos = fastCmdPosGet(brakeID);
+*/
   brakeState = true;
   //
   // Open the throttle port
