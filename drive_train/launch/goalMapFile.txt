@@ -1,0 +1,12 @@
+// DON'T remove comments  
+// first line [NumSteps][NumCols]  all rest of lines are [Steer Brake Throttle maxThrottle brakeEnable distGoal]
+8 6
+//straight 0 0 1 0 0 20 
+//turn     1 0 1 0 0 10 
+//straight 0 0 1 0 0 20 
+//turn     1 0 1 0 0 10 
+//straight 0 0 1 0 0 20 
+//turn     1 0 1 0 0 10
+//straight 0 0 1 0 0 20 
+//stop     0 0 0 0 1 0  
+

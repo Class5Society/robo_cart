@@ -22,5 +22,6 @@
           <param name="brake_D_val" value="0.01" />
       </node>
       <node pkg="drive_train" type="cart_drive_node" name="auto_cart_drive">
+          <param name="goal_map_file" value="$(find drive_train)/launch/goalMapFile.txt" />
       </node>
 </launch>

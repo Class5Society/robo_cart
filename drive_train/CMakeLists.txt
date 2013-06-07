@@ -73,7 +73,7 @@ include_directories(include
 
 ## Declare a cpp executable
 add_executable(drive_train_node src/drive_train.cpp src/map_lin_moves.cpp)
-add_executable(cart_drive_node src/cart_drive.cpp src/map_lin_moves.cpp)
+add_executable(cart_drive_node src/cart_drive.cpp src/map_lin_moves.cpp src/readTable.cpp)
 add_executable(teleop_cart_node src/teleop_cart.cpp)
 
 ## Add cmake target dependencies of the executable/library

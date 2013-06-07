@@ -22,6 +22,7 @@
      double brakeOff;
      double startCartPos;
      uint32_t currGoal = 0;
+     double *currGoalPtr;
  
      //outputs to command 
      double currentSteerPos;
@@ -31,8 +32,8 @@
      bool firstTimeAuto;
      
 
-#define NUMPOINTS 6
-#define NUMSTEPS 8
+//#define NUMPOINTS 6
+//#define numGoals 8
 #define STEERPOS 0
 #define BRAKEPOS 1
 #define THROTTLEPOS 2
@@ -40,18 +41,21 @@
 #define BRAKEENABLEPOS 4
 #define DISTGOALPOS 5
 
-
+std::string goalMapFile;
+double *goalMap;
+int numGoals;
+int numCols;
                                       // steer brake throttle maxThrottle brakeEnable distGoal 
-double goalMap[NUMSTEPS][NUMPOINTS] = { 
-                                        {0, 0, 1, 0, 0, 20}, //straight
-                                        {1, 0, 1, 0, 0, 10}, //turn
-                                        {0, 0, 1, 0, 0, 20}, //straight
-                                        {1, 0, 1, 0, 0, 10}, //turn
-                                        {0, 0, 1, 0, 0, 20}, //straight
-                                        {1, 0, 1, 0, 0, 10}, //turn
-                                        {0, 0, 1, 0, 0, 20}, //straight
-                                        {0, 0, 0, 0, 1, 0}, //stop
-                                     };
+//double goalMap[numGoals][NUMPOINTS] = { 
+//                                        {0, 0, 1, 0, 0, 20}, //straight
+//                                        {1, 0, 1, 0, 0, 10}, //turn
+//                                        {0, 0, 1, 0, 0, 20}, //straight
+//                                        {1, 0, 1, 0, 0, 10}, //turn
+//                                        {0, 0, 1, 0, 0, 20}, //straight
+//                                        {1, 0, 1, 0, 0, 10}, //turn
+ //                                       {0, 0, 1, 0, 0, 20}, //straight
+//                                        {0, 0, 0, 0, 1, 0}, //stop
+//                                     };
 
 void cartAutoDriveCallBack(const cart_sensors::EncoderConstPtr& msg)
 {
@@ -63,44 +67,50 @@ void cartAutoDriveCallBack(const cart_sensors::EncoderConstPtr& msg)
 
   if (autoEnable == true && startAutoRun == true)
   {
+     uint32_t currGoalLoc;
+
      //get the offset
      if (firstTimeAuto == true)
      {
         startCartPos = msg->distance;
         currGoal = 0;
+        currGoalPtr = goalMap;
         firstTimeAuto = false;
      }
      
+     
      //check the goal
      double goalPos = msg->distance - startCartPos;
-     if (goalPos >= goalMap[currGoal][DISTGOALPOS] && currGoal < NUMSTEPS-1)
+     if (firstTimeAuto != true && goalPos >= currGoalPtr[DISTGOALPOS] && currGoal < numGoals-1)
      {
         currGoal++;
+        currGoalPtr += numCols;
         startCartPos = msg->distance;
      }
+     
 
      //generate the steering 
-     currentSteerPos = steerMap.getValue(goalMap[currGoal][STEERPOS]);
+     currentSteerPos = steerMap.getValue(currGoalPtr[STEERPOS]);
 
      //generate the brake 
-     currentBrakePos = brakeMap.getValue(goalMap[currGoal][BRAKEPOS]);
+     currentBrakePos = brakeMap.getValue(currGoalPtr[BRAKEPOS]);
 
      //check buttons
-     if (goalMap[currGoal][BRAKEENABLEPOS] == 1 ||  fullBrakeEnable)
+     if (currGoalPtr[BRAKEENABLEPOS] == 1 ||  fullBrakeEnable)
      {
         currentBrakePos = brakeFullStop;
         fullBrakeEnable = true;
      }
   
-     if (goalMap[currGoal][BRAKEENABLEPOS] == 0 )
+     if (currGoalPtr[BRAKEENABLEPOS] == 0 )
      {
         currentBrakePos = brakeOff;
         fullBrakeEnable = false;
      }
 
      //generate the throttle
-     currentThrottlePos = throttleMap.getValue(goalMap[currGoal][THROTTLEPOS]);
-     maxThrottlePos = maxThrottleMap.getValue(goalMap[currGoal][MAXTHROTTLEPOS]);
+     currentThrottlePos = throttleMap.getValue(currGoalPtr[THROTTLEPOS]);
+     maxThrottlePos = maxThrottleMap.getValue(currGoalPtr[MAXTHROTTLEPOS]);
 
      //check limits
      if (currentThrottlePos > maxThrottlePos)
@@ -225,6 +235,7 @@ int main(int argc, char **argv)
 
   //get a parameter node
   ros::NodeHandle n_param;
+  ros::NodeHandle np_param("~");
 
   //Get the parameters
   n_param.param("steer_start_pos",steerStartPos,POS_START_REF);
@@ -236,6 +247,11 @@ int main(int argc, char **argv)
   n_param.param("throttle_start",throttleStartPos,MIN_THROT_POS);
   n_param.param("throttle_stop",throttleStopPos,MAX_THROT_POS);
 
+  np_param.param<std::string>("goal_map_file",goalMapFile,"goalMap.txt");
+
+  //read in the goal map
+  int retVal = readTable((char *) goalMapFile.c_str(),&numGoals,&numCols, &goalMap);
+ 
   //setup the mappings for the joystick
   steerMap.initMap(steerRightStop,steerLeftStop,-1,1,steerStartPos);
   brakeMap.initMap(brakeFullStop,brakeOff,-1, 0);

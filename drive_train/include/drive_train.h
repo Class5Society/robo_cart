@@ -31,4 +31,7 @@
 
 #define MAX_THROT_POS 100.0
 #define MIN_THROT_POS 70.0
+
+int readTable(char *fileName, int *numSteps, int *numCols, double **goalMap);
+
 #endif
