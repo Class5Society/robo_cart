@@ -23,6 +23,8 @@
      double startCartPos;
      uint32_t currGoal = 0;
      double *currGoalPtr;
+     double goalPos=0;
+
  
      //outputs to command 
      double currentSteerPos;
@@ -80,7 +82,8 @@ void cartAutoDriveCallBack(const cart_sensors::EncoderConstPtr& msg)
      
      
      //check the goal
-     double goalPos = msg->distance - startCartPos;
+     goalPos = msg->distance - startCartPos;
+
      if (firstTimeAuto != true && goalPos >= currGoalPtr[DISTGOALPOS] && currGoal < numGoals-1)
      {
         currGoal++;
@@ -213,6 +216,8 @@ void autoCartDriveCallBack(const ros::TimerEvent&)
    commandMsg.throttle = currentThrottlePos;
    commandMsg.maxThrottle = maxThrottlePos;
    commandMsg.fullBrakeEnable = fullBrakeEnable;
+   commandMsg.currDistance = startCartPos;
+   commandMsg.goalDist = goalPos;
 
    //publish message
    commandCart.publish(commandMsg);
