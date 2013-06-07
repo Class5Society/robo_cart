@@ -104,6 +104,7 @@ void CartDistance(const ros::TimerEvent&)
   cart_sensors::Encoder distanceMsg;
   distanceMsg.distance = distTrav;
   distanceMsg.numTurns = currCounts/NUM_PULSE;
+  distanceMsg.numPulses = currCounts;
   distanceMsg.header.stamp = ros::Time().now();
   
   //Publish the message
