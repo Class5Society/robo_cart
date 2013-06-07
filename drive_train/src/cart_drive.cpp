@@ -108,6 +108,7 @@ void cartAutoDriveCallBack(const cart_sensors::EncoderConstPtr& msg)
         fullBrakeEnable = false;
      }
 
+
      //generate the throttle
      currentThrottlePos = throttleMap.getValue(currGoalPtr[THROTTLEPOS]);
      maxThrottlePos = maxThrottleMap.getValue(currGoalPtr[MAXTHROTTLEPOS]);
@@ -180,6 +181,7 @@ void cartJoyCallBack(const sensor_msgs::JoyConstPtr& msg)
      if (msg->buttons[1] == 1)
      {
         startAutoRun = true;
+        firstTimeAuto = true;
      }
 
      if (msg->buttons[2] == 1)

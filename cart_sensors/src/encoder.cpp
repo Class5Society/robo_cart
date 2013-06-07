@@ -137,7 +137,7 @@ int main(int argc, char **argv)
    * Timers allow you to get a callback at a specified rate.  Here we create
    * two timers at different rates as a demonstration.
    */
-  ros::Timer timer1 = n.createTimer(ros::Duration(.01), CartDistance);
+  ros::Timer timer1 = n.createTimer(ros::Duration(.003), CartDistance);
 
   ros::spin();
 
