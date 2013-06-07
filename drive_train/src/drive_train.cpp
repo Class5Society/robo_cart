@@ -83,8 +83,17 @@ void driveTrainAutoCallBack(const drive_train::CartDriveConstPtr& msg)
   if (msg->fullBrakeEnable == true)  
   {
      currentBrakePos = brakeFullStop;
+     brakeState = true;
   }
   
+  //check buttons
+  if (msg->fullBrakeEnable == false)  
+  {
+     ROS_INFO("GOT HERE");
+     currentBrakePos = brakeOff;
+     brakeState = false;
+  }
+
   //set position
   fastCmdPosSetNoAck(brakeID, currentBrakePos);
 
