@@ -1,0 +1,8 @@
+<launch>
+   <node pkg="cart_sensors" type="encoder_node" name="distance_trav">
+       <param name="encoder_port" value="/dev/talos_direct/digio_11" />
+   </node>
+   <node pkg="cart_sensors" type="engage_auto_node" name="engage_button">
+       <param name="button_port" value="/dev/talos_direct/button2" />
+   </node>
+</launch>
